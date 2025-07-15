@@ -10,8 +10,8 @@ app.use(express.json());
 
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
-const dbName = 'eightCluster';
-const collectionName = 'avaliacoes';
+const dbName = 'dbAvalia';
+const collectionName = 'colAvaliacao';
 
 // Conecta uma vez ao iniciar
 client.connect()
