@@ -69,82 +69,95 @@
   </div>
 
   <script>
-    let dadosOriginais = [];
+  let dadosOriginais = [];
+  let dadosFiltrados = [];
 
-    async function carregarAvaliacoes() {
+  async function carregarAvaliacoes() {
+    try {
       const res = await fetch('https://avaliation.onrender.com/avaliacoes');
       const dados = await res.json();
       dadosOriginais = dados;
+      dadosFiltrados = dados;
       atualizarDashboard(dados);
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
     }
+  }
 
-    function atualizarDashboard(dados) {
-      const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
-      const tabela = document.getElementById('table-body');
-      tabela.innerHTML = '';
+  function atualizarDashboard(dados) {
+    const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
+    const tabela = document.getElementById('table-body');
+    tabela.innerHTML = '';
 
-      dados.forEach(av => {
-        contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
-        const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
-        tabela.innerHTML += row;
-      });
+    dados.forEach(av => {
+      contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
+      const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
+      tabela.innerHTML += row;
+    });
 
-      const ctx = document.getElementById('chart').getContext('2d');
-      if (window.myChart) window.myChart.destroy();
-      window.myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(contagem),
-          datasets: [{
-            label: 'Quantidade de Avaliações',
-            data: Object.values(contagem),
-            backgroundColor: ['#28a745', '#8bc34a', '#ffc107', '#dc3545']
-          }]
-        }
-      });
-    }
-
-    function filtrarDados() {
-      const inicio = new Date(document.getElementById('dataInicio').value);
-      const fim = new Date(document.getElementById('dataFim').value);
-      if (!inicio || !fim || isNaN(inicio.getTime()) || isNaN(fim.getTime())) {
-        alert('Preencha as datas corretamente.');
-        return;
+    const ctx = document.getElementById('chart').getContext('2d');
+    if (window.myChart) window.myChart.destroy();
+    window.myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(contagem),
+        datasets: [{
+          label: 'Quantidade de Avaliações',
+          data: Object.values(contagem),
+          backgroundColor: ['#28a745', '#8bc34a', '#ffc107', '#dc3545']
+        }]
       }
-      fim.setHours(23, 59, 59);
-      const filtrados = dadosOriginais.filter(av => {
-        const d = new Date(av.data);
-        return d >= inicio && d <= fim;
-      });
-      atualizarDashboard(filtrados);
+    });
+  }
+
+  function filtrarDados() {
+    const inicioStr = document.getElementById('dataInicio').value;
+    const fimStr = document.getElementById('dataFim').value;
+
+    if (!inicioStr || !fimStr) {
+      alert('Preencha as duas datas para filtrar.');
+      return;
     }
 
-    function exportarExcel() {
-      const ws = XLSX.utils.json_to_sheet(dadosOriginais);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
-      XLSX.writeFile(wb, "avaliacoes.xlsx");
-    }
+    const inicio = new Date(inicioStr);
+    const fim = new Date(fimStr);
+    fim.setHours(23, 59, 59);
 
-    async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(14);
-      doc.text("Relatório de Avaliações", 20, 20);
-      let y = 30;
-      doc.setFontSize(11);
-      dadosOriginais.forEach(av => {
-        doc.text(`${av.nome} | ${av.avaliacao} | ${new Date(av.data).toLocaleString()}`, 20, y);
-        y += 8;
-        if (y > 280) {
-          doc.addPage();
-          y = 20;
-        }
-      });
-      doc.save("avaliacoes.pdf");
-    }
+    dadosFiltrados = dadosOriginais.filter(av => {
+      const d = new Date(av.data);
+      return d >= inicio && d <= fim;
+    });
 
-    carregarAvaliacoes();
-  </script>
+    atualizarDashboard(dadosFiltrados);
+  }
+
+  function exportarExcel() {
+    const ws = XLSX.utils.json_to_sheet(dadosFiltrados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
+    XLSX.writeFile(wb, "avaliacoes.xlsx");
+  }
+
+  async function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Relatório de Avaliações", 20, 20);
+    let y = 30;
+    doc.setFontSize(11);
+    dadosFiltrados.forEach(av => {
+      doc.text(`${av.nome} | ${av.avaliacao} | ${new Date(av.data).toLocaleString()}`, 20, y);
+      y += 8;
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+    doc.save("avaliacoes.pdf");
+  }
+
+  window.onload = carregarAvaliacoes;
+</script>
+
 </body>
 </html>
