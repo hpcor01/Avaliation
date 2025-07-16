@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard de Avaliações</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { background: #f8f9fa; padding: 20px; font-family: sans-serif; }
+    h1 { margin-bottom: 30px; }
+    canvas { max-width: 500px; margin: 20px auto; }
+    table { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">Dashboard de Avaliações</h1>
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>Nome</th>
+            <th>Avaliação</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function carregarAvaliacoes() {
+      const res = await fetch('https://avaliation.onrender.com/avaliacoes');
+      const dados = await res.json();
+      const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
+      const tabela = document.getElementById('table-body');
+      tabela.innerHTML = '';
+      dados.forEach(av => {
+        contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
+        const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
+        tabela.innerHTML += row;
+      });
+
+      const ctx = document.getElementById('chart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(contagem),
+          datasets: [{
+            label: 'Quantidade de Avaliações',
+            data: Object.values(contagem),
+            backgroundColor: ['#28a745', '#8bc34a', '#ffc107', '#dc3545']
+          }]
+        }
+      });
+    }
+    carregarAvaliacoes();
+  </script>
+</body>
+</html>

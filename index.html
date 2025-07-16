@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avaliação de Atendimento</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .options, .identify, .thanks {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+    .button {
+      padding: 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      width: 250px;
+    }
+    .muito-bom { background-color: #4CAF50; color: white; }
+    .bom { background-color: #8BC34A; color: white; }
+    .regular { background-color: #FFC107; color: black; }
+    .ruim { background-color: #F44336; color: white; }
+    .yes, .no { background-color: #2196F3; color: white; }
+    .input-name {
+      padding: 10px;
+      font-size: 18px;
+      width: 250px;
+      margin-bottom: 10px;
+    }
+    .identify-question {
+      font-size: 28px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="options" id="options">
+    <h1>Avalie seu atendimento:</h1>
+    <button class="button muito-bom" onclick="selectRating('Muito bom')">😀 Muito bom</button>
+    <button class="button bom" onclick="selectRating('Bom')">🙂 Bom</button>
+    <button class="button regular" onclick="selectRating('Regular')">😐 Regular</button>
+    <button class="button ruim" onclick="selectRating('Ruim')">🙁 Ruim</button>
+  </div>
+
+  <div class="identify" id="identify">
+    <p class="identify-question" id="identifyQuestion">Deseja se identificar?</p>
+    <button class="button yes" id="yesBtn" onclick="showNameInput(true)">Sim</button>
+    <button class="button no" id="noBtn" onclick="submitEvaluation()">Não</button>
+    <input class="input-name" id="nameInput" type="text" placeholder="Digite seu nome" style="display:none;">
+    <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
+  </div>
+
+  <div class="thanks" id="thanks">
+    <h2>Obrigado!</h2>
+  </div>
+
+  <script>
+    const options = document.getElementById('options');
+    const identify = document.getElementById('identify');
+    const thanks = document.getElementById('thanks');
+    const nameInput = document.getElementById('nameInput');
+    const submitNameBtn = document.getElementById('submitNameBtn');
+    const identifyQuestion = document.getElementById('identifyQuestion');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    let selectedRating = '';
+
+    function selectRating(rating) {
+      selectedRating = rating;
+      options.style.display = 'none';
+      identify.style.display = 'flex';
+    }
+
+    function showNameInput(show) {
+      if (show) {
+        identifyQuestion.style.display = 'none';
+        yesBtn.style.display = 'none';
+        noBtn.style.display = 'none';
+        nameInput.style.display = 'block';
+        submitNameBtn.style.display = 'inline-block';
+      }
+    }
+
+    function submitEvaluation() {
+      const name = nameInput.value || 'Anônimo';
+      const now = new Date().toISOString();
+
+      fetch('https://avaliation.onrender.com/avaliar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Erro ao salvar');
+        return response.json();
+      })
+      .then(() => {
+        identify.style.display = 'none';
+        thanks.style.display = 'flex';
+        setTimeout(() => {
+          thanks.style.display = 'none';
+          nameInput.value = '';
+          showNameInput(false);
+          identifyQuestion.style.display = 'block';
+          yesBtn.style.display = 'inline-block';
+          noBtn.style.display = 'inline-block';
+          options.style.display = 'flex';
+        }, 3000);
+      })
+      .catch(err => {
+        alert('Erro ao enviar avaliação. Verifique a conexão.');
+        console.error(err);
+      });
+    }
+
+    window.onload = () => {
+      options.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
