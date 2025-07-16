@@ -51,6 +51,32 @@
       justify-content: center;
       margin-top: 20px;
     }
+    .tooltip {
+      position: relative;
+    }
+    
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 10;
+    }
+    
+    .tooltip:hover::after {
+      opacity: 1;
+    }
+    
   </style>
 </head>
 <body>
@@ -62,14 +88,9 @@
     <button class="button ruim" onclick="selectRating('Ruim')">🙁 Ruim</button>
 
     <div class="button-row">
-      <div class="tooltip-wrapper">
-        <button class="button" style="background-color:#bfbbbb;" onclick="speakOptions()">🔊</button>
-        <span class="tooltip">Repetir a pergunta</span>
-      </div>
-      <div class="tooltip-wrapper">
-        <button class="button" style="background-color:#bfbbbb;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções: Muito bom, Bom, Regular ou Ruim.')">❓</button>
-      <span class="tooltip">Ajuda para avaliação</span>
-      </div>
+        <button class="button tooltip" style="background-color:#444;" onclick="speakOptions()" data-tooltip="Repetir a pergunta">🔊</button>
+        <button class="button tooltip" style="background-color:#555;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções.')"
+          data-tooltip="Ajuda para avaliação">❓</button>
     </div>
   </div>
 
@@ -81,14 +102,9 @@
     <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
 
     <div class="button-row">
-      <div class="tooltip-wrapper">
-        <button class="button" style="background-color:#bfbbbb;" onclick="speakIdentify()">🔊</button>
-        <span class="tooltip">Repetir pergunta</span>
-      </div>
-    <div class="tooltip-wrapper">
-        <button class="button" style="background-color:#bfbbbb;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo.')">❓</button>
-        <span class="tooltip">Ajuda para identificação</span>
-    </div>
+      <button class="button tooltip" style="background-color:#444;" onclick="speakIdentify()" data-tooltip="Repetir pergunta">🔊</button>
+      <button class="button tooltip" style="background-color:#555;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo.')"
+        data-tooltip="Ajuda para identificação">❓</button>
     </div>
   </div>
 
