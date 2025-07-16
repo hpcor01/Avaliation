@@ -62,8 +62,14 @@
     <button class="button ruim" onclick="selectRating('Ruim')">🙁 Ruim</button>
 
     <div class="button-row">
-      <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊 Repetir</button>
-      <button class="button" style="background-color:#555;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções: Muito bom, Bom, Regular ou Ruim. Caso esteja com dúvidas, peça ajuda a um atendente.')">❓ Ajuda</button>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#bfbbbb;" onclick="speakOptions()">🔊</button>
+        <span class="tooltip">Repetir a pergunta</span>
+      </div>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#bfbbbb;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções: Muito bom, Bom, Regular ou Ruim.')">❓</button>
+      <span class="tooltip">Ajuda para avaliação</span>
+      </div>
     </div>
   </div>
 
@@ -75,8 +81,14 @@
     <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
 
     <div class="button-row">
-      <button class="button" style="background-color:#444;" onclick="speakIdentify()">🔊 Repetir</button>
-      <button class="button" style="background-color:#555;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo. Em caso de dúvida, peça ajuda.')">❓ Ajuda</button>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#bfbbbb;" onclick="speakIdentify()">🔊</button>
+        <span class="tooltip">Repetir pergunta</span>
+      </div>
+    <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#bfbbbb;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo.')">❓</button>
+        <span class="tooltip">Ajuda para identificação</span>
+    </div>
     </div>
   </div>
 
