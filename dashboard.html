@@ -1,7 +1,4 @@
-from pathlib import Path
 
-# Regerar o código HTML da dashboard com filtros corrigidos após reset
-dashboard_html = """
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -189,9 +186,3 @@ dashboard_html = """
   </script>
 </body>
 </html>
-"""
-
-# Salvar
-dashboard_path = Path("/mnt/data/dashboard.html")
-dashboard_path.write_text(dashboard_html, encoding="utf-8")
-dashboard_path.name
