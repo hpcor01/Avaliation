@@ -1,3 +1,7 @@
+from pathlib import Path
+
+# Regerar o código HTML da dashboard com filtros corrigidos após reset
+dashboard_html = """
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -20,17 +24,30 @@
     <h1 class="text-center">Dashboard de Avaliações</h1>
 
     <div class="row mb-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label>Data início:</label>
         <input type="date" id="dataInicio" class="form-control">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label>Data fim:</label>
         <input type="date" id="dataFim" class="form-control">
       </div>
-      <div class="col-md-4 d-flex align-items-end">
+      <div class="col-md-3">
+        <label>Tipo de Avaliação:</label>
+        <select id="tipoAvaliacao" class="form-control">
+          <option value="">Todos</option>
+          <option value="Muito bom">Muito bom</option>
+          <option value="Bom">Bom</option>
+          <option value="Regular">Regular</option>
+          <option value="Ruim">Ruim</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end gap-2">
         <button class="btn btn-primary w-100" onclick="filtrarDados()">
           <i class="bi bi-funnel-fill"></i> Filtrar
+        </button>
+        <button class="btn btn-secondary w-100" onclick="limparFiltros()">
+          <i class="bi bi-x-circle-fill"></i> Limpar
         </button>
       </div>
     </div>
@@ -69,95 +86,112 @@
   </div>
 
   <script>
-  let dadosOriginais = [];
-  let dadosFiltrados = [];
+    let dadosOriginais = [];
+    let dadosFiltrados = [];
 
-  async function carregarAvaliacoes() {
-    try {
-      const res = await fetch('https://avaliation.onrender.com/avaliacoes');
-      const dados = await res.json();
-      dadosOriginais = dados;
-      dadosFiltrados = dados;
-      atualizarDashboard(dados);
-    } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-    }
-  }
-
-  function atualizarDashboard(dados) {
-    const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
-    const tabela = document.getElementById('table-body');
-    tabela.innerHTML = '';
-
-    dados.forEach(av => {
-      contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
-      const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
-      tabela.innerHTML += row;
-    });
-
-    const ctx = document.getElementById('chart').getContext('2d');
-    if (window.myChart) window.myChart.destroy();
-    window.myChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(contagem),
-        datasets: [{
-          label: 'Quantidade de Avaliações',
-          data: Object.values(contagem),
-          backgroundColor: ['#28a745', '#8bc34a', '#ffc107', '#dc3545']
-        }]
+    async function carregarAvaliacoes() {
+      try {
+        const res = await fetch('https://avaliation.onrender.com/avaliacoes');
+        const dados = await res.json();
+        dadosOriginais = dados;
+        dadosFiltrados = dados;
+        atualizarDashboard(dados);
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err);
       }
-    });
-  }
-
-  function filtrarDados() {
-    const inicioStr = document.getElementById('dataInicio').value;
-    const fimStr = document.getElementById('dataFim').value;
-
-    if (!inicioStr || !fimStr) {
-      alert('Preencha as duas datas para filtrar.');
-      return;
     }
 
-    const inicio = new Date(inicioStr);
-    const fim = new Date(fimStr);
-    fim.setHours(23, 59, 59);
+    function atualizarDashboard(dados) {
+      const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
+      const tabela = document.getElementById('table-body');
+      tabela.innerHTML = '';
 
-    dadosFiltrados = dadosOriginais.filter(av => {
-      const d = new Date(av.data);
-      return d >= inicio && d <= fim;
-    });
+      dados.forEach(av => {
+        contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
+        const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
+        tabela.innerHTML += row;
+      });
 
-    atualizarDashboard(dadosFiltrados);
-  }
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(contagem),
+          datasets: [{
+            label: 'Quantidade de Avaliações',
+            data: Object.values(contagem),
+            backgroundColor: ['#28a745', '#8bc34a', '#ffc107', '#dc3545']
+          }]
+        }
+      });
+    }
 
-  function exportarExcel() {
-    const ws = XLSX.utils.json_to_sheet(dadosFiltrados);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
-    XLSX.writeFile(wb, "avaliacoes.xlsx");
-  }
+    function filtrarDados() {
+      const inicioStr = document.getElementById('dataInicio').value;
+      const fimStr = document.getElementById('dataFim').value;
+      const tipo = document.getElementById('tipoAvaliacao').value;
 
-  async function exportarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("Relatório de Avaliações", 20, 20);
-    let y = 30;
-    doc.setFontSize(11);
-    dadosFiltrados.forEach(av => {
-      doc.text(`${av.nome} | ${av.avaliacao} | ${new Date(av.data).toLocaleString()}`, 20, y);
-      y += 8;
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
+      let filtrados = [...dadosOriginais];
+
+      if (inicioStr && fimStr) {
+        const inicio = new Date(inicioStr);
+        const fim = new Date(fimStr);
+        fim.setHours(23, 59, 59);
+        filtrados = filtrados.filter(av => {
+          const d = new Date(av.data);
+          return d >= inicio && d <= fim;
+        });
       }
-    });
-    doc.save("avaliacoes.pdf");
-  }
 
-  window.onload = carregarAvaliacoes;
-</script>
+      if (tipo) {
+        filtrados = filtrados.filter(av => av.avaliacao === tipo);
+      }
 
+      dadosFiltrados = filtrados;
+      atualizarDashboard(dadosFiltrados);
+    }
+
+    function limparFiltros() {
+      document.getElementById('dataInicio').value = "";
+      document.getElementById('dataFim').value = "";
+      document.getElementById('tipoAvaliacao').value = "";
+      dadosFiltrados = dadosOriginais;
+      atualizarDashboard(dadosFiltrados);
+    }
+
+    function exportarExcel() {
+      const ws = XLSX.utils.json_to_sheet(dadosFiltrados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
+      XLSX.writeFile(wb, "avaliacoes.xlsx");
+    }
+
+    async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      doc.text("Relatório de Avaliações", 20, 20);
+      let y = 30;
+      doc.setFontSize(11);
+      dadosFiltrados.forEach(av => {
+        doc.text(`${av.nome} | ${av.avaliacao} | ${new Date(av.data).toLocaleString()}`, 20, y);
+        y += 8;
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      doc.save("avaliacoes.pdf");
+    }
+
+    window.onload = carregarAvaliacoes;
+  </script>
 </body>
 </html>
+"""
+
+# Salvar
+dashboard_path = Path("/mnt/data/dashboard.html")
+dashboard_path.write_text(dashboard_html, encoding="utf-8")
+dashboard_path.name
