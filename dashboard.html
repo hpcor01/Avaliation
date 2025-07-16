@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Dashboard de Avaliações</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
     body { background: #f8f9fa; padding: 20px; font-family: sans-serif; }
@@ -15,11 +17,36 @@
 <body>
   <div class="container">
     <h1 class="text-center">Dashboard de Avaliações</h1>
+
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label>Data início:</label>
+        <input type="date" id="dataInicio" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label>Data fim:</label>
+        <input type="date" id="dataFim" class="form-control">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-primary w-100" onclick="filtrarDados()">Filtrar</button>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <button class="btn btn-success w-100" onclick="exportarExcel()">Exportar Excel</button>
+      </div>
+      <div class="col-md-6">
+        <button class="btn btn-danger w-100" onclick="exportarPDF()">Exportar PDF</button>
+      </div>
+    </div>
+
     <div class="row justify-content-center">
       <div class="col-md-6">
         <canvas id="chart"></canvas>
       </div>
     </div>
+
     <div class="table-responsive">
       <table class="table table-striped table-bordered">
         <thead class="table-dark">
@@ -35,12 +62,20 @@
   </div>
 
   <script>
+    let dadosOriginais = [];
+
     async function carregarAvaliacoes() {
       const res = await fetch('https://avaliation.onrender.com/avaliacoes');
       const dados = await res.json();
+      dadosOriginais = dados;
+      atualizarDashboard(dados);
+    }
+
+    function atualizarDashboard(dados) {
       const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
       const tabela = document.getElementById('table-body');
       tabela.innerHTML = '';
+
       dados.forEach(av => {
         contagem[av.avaliacao] = (contagem[av.avaliacao] || 0) + 1;
         const row = `<tr><td>${av.nome}</td><td>${av.avaliacao}</td><td>${new Date(av.data).toLocaleString()}</td></tr>`;
@@ -48,7 +83,8 @@
       });
 
       const ctx = document.getElementById('chart').getContext('2d');
-      new Chart(ctx, {
+      if (window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: Object.keys(contagem),
@@ -60,6 +96,40 @@
         }
       });
     }
+
+    function filtrarDados() {
+      const inicio = new Date(document.getElementById('dataInicio').value);
+      const fim = new Date(document.getElementById('dataFim').value);
+      fim.setHours(23, 59, 59);
+
+      const filtrados = dadosOriginais.filter(av => {
+        const d = new Date(av.data);
+        return d >= inicio && d <= fim;
+      });
+
+      atualizarDashboard(filtrados);
+    }
+
+    function exportarExcel() {
+      const ws = XLSX.utils.json_to_sheet(dadosOriginais);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
+      XLSX.writeFile(wb, "avaliacoes.xlsx");
+    }
+
+    async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("Relatório de Avaliações", 20, 20);
+      let y = 30;
+      dadosOriginais.forEach(av => {
+        doc.text(`${av.nome} - ${av.avaliacao} - ${new Date(av.data).toLocaleString()}`, 20, y);
+        y += 10;
+      });
+      doc.save("avaliacoes.pdf");
+    }
+
     carregarAvaliacoes();
   </script>
 </body>
