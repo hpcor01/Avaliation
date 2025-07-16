@@ -35,6 +35,15 @@ app.post('/avaliar', async (req, res) => {
   }
 });
 
+//GET PARA ENVIAR DADOS PARA DASHBOARD
+app.get('/avaliacoes', async (req, res) => {
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
+  const data = await collection.find({}).sort({ data: -1 }).toArray();
+  res.send(data);
+});
+
+//TESTE DA API
 app.get('/', (req, res) => {
   res.send('API de Avaliações está rodando.');
 });
