@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Avaliação de Atendimento</title>
   <style>
     body {
@@ -69,6 +69,13 @@
   </div>
 
   <script>
+    function speakText(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pt-BR';
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
     const options = document.getElementById('options');
     const identify = document.getElementById('identify');
     const thanks = document.getElementById('thanks');
@@ -84,6 +91,7 @@
       selectedRating = rating;
       options.style.display = 'none';
       identify.style.display = 'flex';
+      speakText('Deseja se identificar? Pressione Sim ou Não.');
     }
 
     function showNameInput(show) {
@@ -93,6 +101,7 @@
         noBtn.style.display = 'none';
         nameInput.style.display = 'block';
         submitNameBtn.style.display = 'inline-block';
+        speakText('Digite seu nome e pressione Enviar.');
       }
     }
 
@@ -105,13 +114,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
       })
-      .then(response => {
-        if (!response.ok) throw new Error('Erro ao salvar');
-        return response.json();
-      })
+      .then(response => response.json())
       .then(() => {
         identify.style.display = 'none';
         thanks.style.display = 'flex';
+        speakText('Obrigado!');
         setTimeout(() => {
           thanks.style.display = 'none';
           nameInput.value = '';
@@ -120,17 +127,19 @@
           yesBtn.style.display = 'inline-block';
           noBtn.style.display = 'inline-block';
           options.style.display = 'flex';
+          speakText('Como você avalia nosso atendimento? Muito bom, bom, regular ou ruim.');
         }, 3000);
       })
       .catch(err => {
-        alert('Erro ao enviar avaliação. Verifique a conexão.');
+        alert('Erro ao enviar avaliação.');
         console.error(err);
       });
     }
 
     window.onload = () => {
       options.style.display = 'flex';
-    }
+      speakText('Como você avalia nosso atendimento? Muito bom, bom, regular ou ruim.');
+    };
   </script>
 </body>
 </html>
