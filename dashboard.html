@@ -125,8 +125,8 @@
     }
 
     function filtrarDados() {
-      const inicioStr = document.getElementById('dataInicio').value;
-      const fimStr = document.getElementById('dataFim').value;
+      const inicio = new Date(inicioStr + "T00:00:00");
+      const fim = new Date(fimStr + "T23:59:59");
       const tipo = document.getElementById('tipoAvaliacao').value;
 
       let filtrados = [...dadosOriginais];
