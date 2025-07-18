@@ -48,58 +48,64 @@
   </div>
 
   <script>
-    let dadosOriginais = [];
+      </div> <!-- fecha .container -->
 
-    async function carregarAvaliacoes() {
-      try {
-        const resposta = await fetch('https://avaliation.onrender.com/avaliacoes');
-        const dados = await resposta.json();
-        dadosOriginais = dados;
-        carregarTabela(dados);
-      } catch (erro) {
-        console.error("Erro ao carregar avaliações:", erro);
+    <script>
+      let dadosOriginais = [];
+
+      async function carregarAvaliacoes() {
+        try {
+          const resposta = await fetch('https://avaliation.onrender.com/avaliacoes');
+          const dados = await resposta.json();
+          dadosOriginais = dados;
+          carregarTabela(dados);
+        } catch (erro) {
+          console.error("Erro ao carregar avaliações:", erro);
+        }
       }
-    }
 
-    function carregarTabela(lista) {
-      const corpo = document.getElementById('tabelaAvaliacoes');
-      corpo.innerHTML = '';
-      lista.forEach(item => {
-        const linha = `<tr>
-            <td>${item.nome || '-'}</td>
-            <td>${item.avaliacao}</td>
-            <td>${new Date(item.data).toLocaleDateString()}</td>
-          </tr>`;
-        corpo.innerHTML += linha;
-      });
-    }
+      function carregarTabela(lista) {
+        const corpo = document.getElementById('tabelaAvaliacoes');
+        corpo.innerHTML = '';
+        lista.forEach(item => {
+          const linha = `<tr>
+              <td>${item.nome || '-'}</td>
+              <td>${item.avaliacao}</td>
+              <td>${new Date(item.data).toLocaleDateString()}</td>
+            </tr>`;
+          corpo.innerHTML += linha;
+        });
+      }
 
-    function filtrarDados() {
-      const inicioStr = document.getElementById('dataInicio').value;
-      const fimStr = document.getElementById('dataFim').value;
-      const tipo = document.getElementById('tipoAvaliacao').value;
+      function filtrarDados() {
+        const inicioStr = document.getElementById('dataInicio').value;
+        const fimStr = document.getElementById('dataFim').value;
+        const tipo = document.getElementById('tipoAvaliacao').value;
 
-      const inicio = inicioStr ? new Date(inicioStr + 'T00:00:00') : null;
-      const fim = fimStr ? new Date(fimStr + 'T23:59:59') : null;
+        const inicio = inicioStr ? new Date(inicioStr + 'T00:00:00') : null;
+        const fim = fimStr ? new Date(fimStr + 'T23:59:59') : null;
 
-      const filtrados = dadosOriginais.filter(item => {
-        const dataItem = new Date(item.data);
-        const condData = (!inicio || dataItem >= inicio) && (!fim || dataItem <= fim);
-        const condTipo = !tipo || item.avaliacao === tipo;
-        return condData && condTipo;
-      });
+        const filtrados = dadosOriginais.filter(item => {
+          const dataItem = new Date(item.data);
+          const condData = (!inicio || dataItem >= inicio) && (!fim || dataItem <= fim);
+          const condTipo = !tipo || item.avaliacao === tipo;
+          return condData && condTipo;
+        });
 
-      carregarTabela(filtrados);
-    }
+        carregarTabela(filtrados);
+      }
 
-    function limparFiltros() {
-      document.getElementById('dataInicio').value = '';
-      document.getElementById('dataFim').value = '';
-      document.getElementById('tipoAvaliacao').value = '';
-      carregarTabela(dadosOriginais);
-    }
+      function limparFiltros() {
+        document.getElementById('dataInicio').value = '';
+        document.getElementById('dataFim').value = '';
+        document.getElementById('tipoAvaliacao').value = '';
+        carregarTabela(dadosOriginais);
+      }
 
-    carregarAvaliacoes();
+      carregarAvaliacoes();
+    </script>
+</body>
+</html>
   </script>
 </body>
 </html>
