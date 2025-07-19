@@ -102,12 +102,6 @@
       carregarTabela(dadosOriginais);
     }
 
-    function exportarParaExcel() {
-      const tabela = document.getElementById("tabelaAvaliacoes");
-      const wb = XLSX.utils.table_to_book(tabela, {sheet:"Relatorio"});
-      XLSX.writeFile(wb, "avaliacoes.xlsx");
-    }
-
     carregarAvaliacoes();
   </script>
 </body>
