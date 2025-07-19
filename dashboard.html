@@ -9,7 +9,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-light">
   <div class="container py-5">
@@ -115,7 +114,7 @@
       XLSX.writeFile(wb, "avaliacoes.xlsx");
     }
 
-      async function exportarPDF() {
+    async function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
@@ -131,24 +130,6 @@
         if (cols.length)
           table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
       });
-
-      async function exportarGraficoPDF() {
-      const chartContainer = document.querySelector('#grafico');
-      const canvas = await html2canvas(chartContainer);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-  
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pageWidth - 20;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  
-      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
-      pdf.save("grafico-avaliacoes.pdf");
-    }
 
       doc.autoTable({
         head: headers,
