@@ -134,7 +134,7 @@
     const wb = XLSX.utils.table_to_book(tabela, { sheet: "Relatorio" });
     XLSX.writeFile(wb, "avaliacoes.xlsx");
   }
-  
+
   async function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -163,24 +163,14 @@
 
       doc.save("relatorio-avaliacoes.pdf");
     }
-  
-  async function exportarGraficoPDF() {
-      const chartContainer = document.querySelector('#grafico');
-      const canvas = await html2canvas(chartContainer);
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
 
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pageWidth - 20;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.setFontSize(16);
-      pdf.text("Gráfico de Avaliações", 105, 15, { align: "center" });
-      pdf.addImage(imgData, 'PNG', 10, 25, pdfWidth, pdfHeight);
-      pdf.save("grafico-avaliacoes.pdf");
-    }
+  function exportarGraficoPDF() {
+    const canvas = document.getElementById("grafico");
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jspdf.jsPDF();
+    pdf.addImage(imgData, "PNG", 10, 10, 180, 100);
+    pdf.save("grafico_avaliacoes.pdf");
+  }
 
   function atualizarGrafico(dados) {
     const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
