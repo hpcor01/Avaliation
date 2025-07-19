@@ -9,50 +9,69 @@
 </head>
 <body class="bg-light">
   <div class="container py-4">
-    <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
+    <h2 class="mb-4">Dashboard de Avaliações</h2>
 
-    <div class="row mb-3">
-      <div class="col-md-3">
-        <label>Data início:</label>
-        <input type="date" id="dataInicio" class="form-control">
+    <!-- Abas -->
+    <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="relatorio-tab" data-bs-toggle="tab" data-bs-target="#relatorio" type="button" role="tab">📋 Relatório</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="grafico-tab" data-bs-toggle="tab" data-bs-target="#grafico" type="button" role="tab">📊 Gráfico</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+      <!-- Aba: Relatório -->
+      <div class="tab-pane fade show active" id="relatorio" role="tabpanel">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label>Data início:</label>
+            <input type="date" id="dataInicio" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label>Data fim:</label>
+            <input type="date" id="dataFim" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label>Tipo de Avaliação:</label>
+            <select id="tipoAvaliacao" class="form-control">
+              <option value="">Todos</option>
+              <option value="Muito bom">Muito bom</option>
+              <option value="Bom">Bom</option>
+              <option value="Regular">Regular</option>
+              <option value="Ruim">Ruim</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
+            <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
+            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
+            <button class="btn btn-danger" onclick="exportarPDF()">PDF</button>
+          </div>
+        </div>
+
+        <table class="table table-bordered bg-white">
+          <thead class="table-light">
+            <tr>
+              <th>Nome</th>
+              <th>Avaliação</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaAvaliacoes"></tbody>
+        </table>
       </div>
-      <div class="col-md-3">
-        <label>Data fim:</label>
-        <input type="date" id="dataFim" class="form-control">
-      </div>
-      <div class="col-md-3">
-        <label>Tipo de Avaliação:</label>
-        <select id="tipoAvaliacao" class="form-control">
-          <option value="">Todos</option>
-          <option value="Muito bom">Muito bom</option>
-          <option value="Bom">Bom</option>
-          <option value="Regular">Regular</option>
-          <option value="Ruim">Ruim</option>
-        </select>
-      </div>
-      <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
-        <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-        <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
-        <button class="btn btn-danger" onclick="exportarPDF()">PDF</button>
+
+      <!-- Aba: Gráfico -->
+      <div class="tab-pane fade" id="grafico" role="tabpanel">
+        <canvas id="graficoAvaliacao" height="130"></canvas>
       </div>
     </div>
-
-    <canvas id="graficoAvaliacao" height="120"></canvas>
-
-    <table class="table table-bordered mt-4 bg-white">
-      <thead class="table-light">
-        <tr>
-          <th>Nome</th>
-          <th>Avaliação</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaAvaliacoes"></tbody>
-    </table>
   </div>
 
   <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -128,9 +147,7 @@
         },
         options: {
           responsive: true,
-          scales: {
-            y: { beginAtZero: true }
-          }
+          scales: { y: { beginAtZero: true } }
         }
       });
     }
@@ -144,7 +161,6 @@
     async function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-
       doc.setFontSize(16);
       doc.text("Relatório de Avaliações", 14, 20);
       const tableRows = [['Nome', 'Avaliação', 'Data']];
@@ -154,13 +170,11 @@
         if (cols.length)
           tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
       });
-
       let y = 30;
       tableRows.forEach(row => {
         doc.text(row.join("   "), 14, y);
         y += 10;
       });
-
       doc.save("relatorio-avaliacoes.pdf");
     }
 
