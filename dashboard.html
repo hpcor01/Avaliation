@@ -1,28 +1,32 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard de Avaliações</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
+
 <body class="bg-light">
   <div class="container py-4">
-    <h2 class="mb-4">Dashboard de Avaliações</h2>
-    <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="tabela-tab" data-bs-toggle="tab" data-bs-target="#tabela" type="button" role="tab">📋Relatório</button>
+    <ul class="nav nav-tabs mb-4" id="tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">📄 Relatório</a>
       </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="grafico-tab" data-bs-toggle="tab" data-bs-target="#grafico" type="button" role="tab">📊Gráfico</button>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#grafico">📊 Gráfico</a>
       </li>
     </ul>
 
-    <div class="tab-content" id="dashboardContent">
-      <div class="tab-pane fade show active" id="tabela" role="tabpanel">
+    <div class="tab-content">
+      <!-- Relatório -->
+      <div class="tab-pane fade show active" id="relatorio">
         <div class="row mb-3">
           <div class="col-md-3">
             <label>Data início:</label>
@@ -45,33 +49,33 @@
           <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
             <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
-            <button class="btn btn-danger" onclick="exportarPDF()">PDF</button>
+            <button class="btn btn-success" onclick="exportarParaExcel()">Excel</button>
           </div>
         </div>
 
         <table class="table table-bordered bg-white">
           <thead class="table-light">
-            <tr><th>Nome</th><th>Avaliação</th><th>Data</th></tr>
+            <tr>
+              <th>Nome</th>
+              <th>Avaliação</th>
+              <th>Data</th>
+            </tr>
           </thead>
           <tbody id="tabelaAvaliacoes"></tbody>
         </table>
       </div>
 
-      <div class="tab-pane fade" id="grafico" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center my-3">
-          <h4 class="mb-0">Resumo de Avaliações</h4>
-          <button class="btn btn-danger" onclick="exportarGraficoPDF()">Exportar Gráfico (PDF)</button>
+      <!-- Gráfico -->
+      <div class="tab-pane fade" id="grafico">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>Resumo de Avaliações</h4>
+          <button class="btn btn-danger" onclick="exportarGraficoPDF()">PDF</button>
         </div>
-        <canvas id="graficoAvaliacoes" height="120"></canvas>
+        <canvas id="graficoAvaliacoes" height="100"></canvas>
       </div>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     let dadosOriginais = [];
 
@@ -81,7 +85,7 @@
         const dados = await resposta.json();
         dadosOriginais = dados;
         carregarTabela(dados);
-        carregarGrafico(dados);
+        atualizarGrafico(dados);
       } catch (erro) {
         console.error("Erro ao carregar avaliações:", erro);
       }
@@ -97,30 +101,6 @@
           <td>${new Date(item.data).toLocaleDateString()}</td>
         </tr>`;
         corpo.innerHTML += linha;
-      });
-    }
-
-    function carregarGrafico(lista) {
-      const ctx = document.getElementById('graficoAvaliacoes').getContext('2d');
-      const contagem = { "Muito bom": 0, "Bom": 0, "Regular": 0, "Ruim": 0 };
-      lista.forEach(item => contagem[item.avaliacao] && contagem[item.avaliacao]++);
-
-      if (window.graficoInstance) window.graficoInstance.destroy();
-
-      window.graficoInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(contagem),
-          datasets: [{
-            label: 'Quantidade',
-            data: Object.values(contagem),
-            backgroundColor: ['#198754', '#0d6efd', '#ffc107', '#dc3545']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } }
-        }
       });
     }
 
@@ -140,7 +120,7 @@
       });
 
       carregarTabela(filtrados);
-      carregarGrafico(filtrados);
+      atualizarGrafico(filtrados);
     }
 
     function limparFiltros() {
@@ -148,64 +128,64 @@
       document.getElementById('dataFim').value = '';
       document.getElementById('tipoAvaliacao').value = '';
       carregarTabela(dadosOriginais);
-      carregarGrafico(dadosOriginais);
+      atualizarGrafico(dadosOriginais);
     }
 
     function exportarParaExcel() {
-      const table = document.querySelector("table");
-      const wb = XLSX.utils.table_to_book(table, { sheet: "Avaliações" });
-      XLSX.writeFile(wb, "relatorio-avaliacoes.xlsx");
+      const tabela = document.getElementById("tabelaAvaliacoes");
+      const wb = XLSX.utils.table_to_book(tabela, { sheet: "Avaliacoes" });
+      XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
     }
 
-    async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(18);
-      doc.text("Relatório de Avaliações", 105, 15, { align: "center" });
-
-      const table = [];
-      const headers = [["Nome", "Avaliação", "Data"]];
-      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-
-      rows.forEach(tr => {
-        const cols = tr.querySelectorAll("td");
-        if (cols.length)
-          table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+    function exportarGraficoPDF() {
+      const canvas = document.getElementById('graficoAvaliacoes');
+      html2canvas(canvas).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF();
+        pdf.addImage(imgData, 'PNG', 10, 10, 180, 100);
+        pdf.save("grafico_avaliacoes.pdf");
       });
-
-      doc.autoTable({
-        head: headers,
-        body: table,
-        startY: 25,
-        theme: 'grid',
-        styles: { fontSize: 12 },
-        headStyles: { fillColor: [52, 58, 64] }
-      });
-
-      doc.save("relatorio-avaliacoes.pdf");
     }
 
-    async function exportarGraficoPDF() {
-      const chartContainer = document.querySelector('#grafico');
-      const canvas = await html2canvas(chartContainer);
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
+    function atualizarGrafico(dados) {
+      const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+      dados.forEach(av => {
+        if (contagem[av.avaliacao] !== undefined) {
+          contagem[av.avaliacao]++;
+        }
+      });
+      const labels = Object.keys(contagem);
+      const valores = Object.values(contagem);
 
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pageWidth - 20;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.setFontSize(16);
-      pdf.text("Gráfico de Avaliações", 105, 15, { align: "center" });
-      pdf.addImage(imgData, 'PNG', 10, 25, pdfWidth, pdfHeight);
-      pdf.save("grafico-avaliacoes.pdf");
+      if (window.avaliacoesChart) {
+        window.avaliacoesChart.data.datasets[0].data = valores;
+        window.avaliacoesChart.update();
+      } else {
+        const ctx = document.getElementById('graficoAvaliacoes').getContext('2d');
+        window.avaliacoesChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Qtd',
+              data: valores,
+              backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545'],
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
     }
 
     carregarAvaliacoes();
   </script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
