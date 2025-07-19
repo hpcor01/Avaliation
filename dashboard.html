@@ -6,6 +6,7 @@
   <title>Dashboard de Avaliações</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-light">
   <div class="container py-4">
@@ -153,30 +154,62 @@
     }
 
     function exportarParaExcel() {
-      const tabela = document.getElementById('tabelaAvaliacoes');
-      const wb = XLSX.utils.table_to_book(tabela, { sheet: "Avaliações" });
-      XLSX.writeFile(wb, "avaliacoes.xlsx");
-    }
+  const tabela = document.getElementById('tabelaAvaliacoes');
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(tabela);
 
-    async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text("Relatório de Avaliações", 14, 20);
-      const tableRows = [['Nome', 'Avaliação', 'Data']];
-      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-      rows.forEach(tr => {
-        const cols = tr.querySelectorAll("td");
-        if (cols.length)
-          tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
-      });
-      let y = 30;
-      tableRows.forEach(row => {
-        doc.text(row.join("   "), 14, y);
-        y += 10;
-      });
-      doc.save("relatorio-avaliacoes.pdf");
+  // Ajustar colunas
+  const colWidths = [{ wch: 20 }, { wch: 15 }, { wch: 15 }];
+  ws['!cols'] = colWidths;
+
+  // Cabeçalho em negrito
+  ['A1', 'B1', 'C1'].forEach(cell => {
+    if (ws[cell]) {
+      ws[cell].s = {
+        font: { bold: true },
+        alignment: { horizontal: "center" },
+        fill: { fgColor: { rgb: "F0F0F0" } },
+        border: {
+          top: { style: "thin", color: { auto: 1 } },
+          bottom: { style: "thin", color: { auto: 1 } }
+        }
+      };
     }
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
+  XLSX.writeFile(wb, "avaliacoes-formatado.xlsx");
+}
+
+
+  async function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("Relatório de Avaliações", 105, 15, { align: "center" });
+
+  const table = [];
+  const headers = [["Nome", "Avaliação", "Data"]];
+  const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
+
+  rows.forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+    if (cols.length)
+      table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+  });
+
+  doc.autoTable({
+    head: headers,
+    body: table,
+    startY: 25,
+    theme: 'grid',
+    styles: { fontSize: 12 },
+    headStyles: { fillColor: [52, 58, 64] }
+  });
+
+  doc.save("relatorio-avaliacoes.pdf");
+}
 
     carregarAvaliacoes();
   </script>
