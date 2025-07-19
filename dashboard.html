@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
 </head>
 <body class="bg-light">
-  <div class="container py-5">
-    <h2 class="mb-4">Dashboard de Avaliações</h2>
+  <div class="container py-4">
+    <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
 
     <div class="row mb-3">
       <div class="col-md-3">
@@ -33,11 +33,14 @@
       <div class="col-md-3 d-flex align-items-end">
         <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
         <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-        <button class="btn btn-success" onclick="exportarParaExcel()">Exportar</button>
+        <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
+        <button class="btn btn-danger" onclick="exportarPDF()">PDF</button>
       </div>
     </div>
 
-    <table class="table table-bordered bg-white">
+    <canvas id="graficoAvaliacao" height="120"></canvas>
+
+    <table class="table table-bordered mt-4 bg-white">
       <thead class="table-light">
         <tr>
           <th>Nome</th>
@@ -49,50 +52,54 @@
     </table>
   </div>
 
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script>
     let dadosOriginais = [];
+    let chart;
 
     async function carregarAvaliacoes() {
       try {
-        const resposta = await fetch('https://avaliation.onrender.com/avaliacoes');
-        const dados = await resposta.json();
+        const res = await fetch('https://avaliation.onrender.com/avaliacoes');
+        const dados = await res.json();
         dadosOriginais = dados;
         carregarTabela(dados);
-      } catch (erro) {
-        console.error("Erro ao carregar avaliações:", erro);
+        gerarGrafico(dados);
+      } catch (err) {
+        console.error("Erro ao carregar:", err);
       }
     }
 
     function carregarTabela(lista) {
-      const corpo = document.getElementById('tabelaAvaliacoes');
-      corpo.innerHTML = '';
+      const tbody = document.getElementById('tabelaAvaliacoes');
+      tbody.innerHTML = '';
       lista.forEach(item => {
-        const linha = `<tr>
-          <td>${item.nome || '-'}</td>
-          <td>${item.avaliacao}</td>
-          <td>${new Date(item.data).toLocaleDateString()}</td>
-        </tr>`;
-        corpo.innerHTML += linha;
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.nome || '-'}</td>
+            <td>${item.avaliacao}</td>
+            <td>${new Date(item.data).toLocaleDateString()}</td>
+          </tr>`;
       });
     }
 
     function filtrarDados() {
-      const inicioStr = document.getElementById('dataInicio').value;
-      const fimStr = document.getElementById('dataFim').value;
+      const inicio = new Date(document.getElementById('dataInicio').value + 'T00:00:00');
+      const fim = new Date(document.getElementById('dataFim').value + 'T23:59:59');
       const tipo = document.getElementById('tipoAvaliacao').value;
-
-      const inicio = inicioStr ? new Date(inicioStr + 'T00:00:00') : null;
-      const fim = fimStr ? new Date(fimStr + 'T23:59:59') : null;
 
       const filtrados = dadosOriginais.filter(item => {
         const dataItem = new Date(item.data);
-        const condData = (!inicio || dataItem >= inicio) && (!fim || dataItem <= fim);
-        const condTipo = !tipo || item.avaliacao === tipo;
-        return condData && condTipo;
+        const okData = (!isNaN(inicio) ? dataItem >= inicio : true) && (!isNaN(fim) ? dataItem <= fim : true);
+        const okTipo = tipo ? item.avaliacao === tipo : true;
+        return okData && okTipo;
       });
 
       carregarTabela(filtrados);
+      gerarGrafico(filtrados);
     }
 
     function limparFiltros() {
@@ -100,6 +107,61 @@
       document.getElementById('dataFim').value = '';
       document.getElementById('tipoAvaliacao').value = '';
       carregarTabela(dadosOriginais);
+      gerarGrafico(dadosOriginais);
+    }
+
+    function gerarGrafico(dados) {
+      const counts = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+      dados.forEach(item => counts[item.avaliacao] = (counts[item.avaliacao] || 0) + 1);
+
+      const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(counts),
+          datasets: [{
+            label: 'Quantidade',
+            data: Object.values(counts),
+            backgroundColor: ['#198754', '#0d6efd', '#ffc107', '#dc3545'],
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function exportarParaExcel() {
+      const tabela = document.getElementById('tabelaAvaliacoes');
+      const wb = XLSX.utils.table_to_book(tabela, { sheet: "Avaliações" });
+      XLSX.writeFile(wb, "avaliacoes.xlsx");
+    }
+
+    async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text("Relatório de Avaliações", 14, 20);
+      const tableRows = [['Nome', 'Avaliação', 'Data']];
+      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
+      rows.forEach(tr => {
+        const cols = tr.querySelectorAll("td");
+        if (cols.length)
+          tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+      });
+
+      let y = 30;
+      tableRows.forEach(row => {
+        doc.text(row.join("   "), 14, y);
+        y += 10;
+      });
+
+      doc.save("relatorio-avaliacoes.pdf");
     }
 
     carregarAvaliacoes();
