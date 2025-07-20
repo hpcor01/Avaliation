@@ -131,28 +131,38 @@ function exportarParaExcel() {
   XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
 }
 
-async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      doc.setFontSize(16);
-      doc.text("Relatório de Avaliações", 14, 20);
-      const tableRows = [['Nome', 'Avaliação', 'Data']];
-      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-      rows.forEach(tr => {
-        const cols = tr.querySelectorAll("td");
-        if (cols.length)
-          tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
-      });
+  const titulo = "Relatório de Avaliações";
+  const dataEmissao = new Date().toLocaleString();
 
-      let y = 30;
-      tableRows.forEach(row => {
-        doc.text(row.join("   "), 14, y);
-        y += 10;
-      });
+  doc.setFontSize(18);
+  doc.text(titulo, 14, 20);
+  
+  doc.setFontSize(10);
+  doc.text(`Data de emissão: ${dataEmissao}`, 14, 28);
+  doc.line(14, 30, 196, 30); // linha separadora
 
-      doc.save("relatorio-avaliacoes.pdf");
-    }
+  const tableRows = [['Nome', 'Avaliação', 'Data']];
+  const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
+  rows.forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+    if (cols.length)
+      tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+  });
+
+  let y = 40;
+  doc.setFontSize(12);
+  tableRows.forEach((row, index) => {
+    if (y > 280) { doc.addPage(); y = 20; }
+    doc.text(row.join("   "), 14, y);
+    y += 10;
+  });
+
+  doc.save("relatorio-avaliacoes.pdf");
+}
 
     carregarAvaliacoes();
 
