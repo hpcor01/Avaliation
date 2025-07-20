@@ -10,6 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-light">
   <div class="container py-4">
@@ -135,30 +136,33 @@ function exportarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const titulo = "Relatório de Avaliações";
   const dataEmissao = new Date().toLocaleString();
-
-  doc.setFontSize(18);
-  doc.text(titulo, 14, 20);
-  
+  doc.setFontSize(16);
+  doc.text("Relatório de Avaliações", 14, 20);
   doc.setFontSize(10);
-  doc.text(`Data de emissão: ${dataEmissao}`, 14, 28);
-  doc.line(14, 30, 196, 30); // linha separadora
+  doc.text(`Emitido em: ${dataEmissao}`, 14, 28);
 
-  const tableRows = [['Nome', 'Avaliação', 'Data']];
-  const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-  rows.forEach(tr => {
+  const headers = [["Nome", "Avaliação", "Data"]];
+  const body = [];
+
+  document.querySelectorAll("#tabelaAvaliacoes tr").forEach(tr => {
     const cols = tr.querySelectorAll("td");
-    if (cols.length)
-      tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+    if (cols.length === 3) {
+      body.push([
+        cols[0].innerText,
+        cols[1].innerText,
+        cols[2].innerText
+      ]);
+    }
   });
 
-  let y = 40;
-  doc.setFontSize(12);
-  tableRows.forEach((row, index) => {
-    if (y > 280) { doc.addPage(); y = 20; }
-    doc.text(row.join("   "), 14, y);
-    y += 10;
+  doc.autoTable({
+    head: headers,
+    body: body,
+    startY: 35,
+    styles: { fontSize: 10 },
+    theme: 'striped',
+    headStyles: { fillColor: [0, 102, 204] }
   });
 
   doc.save("relatorio-avaliacoes.pdf");
