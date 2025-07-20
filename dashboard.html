@@ -17,10 +17,10 @@
 
     <ul class="nav nav-tabs" id="tabMenu">
       <li class="nav-item">
-        <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">Relatório</a>
+        <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">📃Relatório</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="tab" href="#grafico">Gráfico</a>
+        <a class="nav-link" data-bs-toggle="tab" href="#grafico">📊Gráfico</a>
       </li>
     </ul>
 
@@ -48,8 +48,8 @@
           <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
             <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Exportar Excel</button>
-            <button class="btn btn-danger" onclick="exportarRelatorioPDF()">Exportar PDF</button>
+            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
+            <button class="btn btn-danger" onclick="exportarRelatorioPDF()">PDF</button>
           </div>
         </div>
 
@@ -131,10 +131,34 @@ function exportarParaExcel() {
   XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
 }
 
-function exportarRelatorioPDF() {
-  const opt = { margin: 0.5, filename: 'relatorio_avaliacoes.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }};
-  html2pdf().set(opt).from(document.getElementById("relatorioConteudo")).save();
-}
+async function exportarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Relatório de Avaliações", 105, 15, { align: "center" });
+
+      const table = [];
+      const headers = [["Nome", "Avaliação", "Data"]];
+      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
+
+      rows.forEach(tr => {
+        const cols = tr.querySelectorAll("td");
+        if (cols.length)
+          table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+      });
+
+      doc.autoTable({
+        head: headers,
+        body: table,
+        startY: 25,
+        theme: 'grid',
+        styles: { fontSize: 12 },
+        headStyles: { fillColor: [52, 58, 64] }
+      });
+
+      doc.save("relatorio-avaliacoes.pdf");
+    }
 
 function atualizarGrafico(dados) {
   const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
