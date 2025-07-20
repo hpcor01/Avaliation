@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard de Avaliações</title>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body class="bg-light">
   <div class="container py-4">
-    <ul class="nav nav-tabs mb-4" id="tabMenu">
+    <h2 class="mb-4">Dashboard de Avaliações</h2>
+
+    <ul class="nav nav-tabs" id="tabMenu">
       <li class="nav-item">
-        <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">📃Relatório</a>
+        <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">Relatório</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="tab" href="#grafico">📊Gráfico</a>
+        <a class="nav-link" data-bs-toggle="tab" href="#grafico">Gráfico</a>
       </li>
     </ul>
 
     <div class="tab-content">
-      <!-- Relatório -->
       <div class="tab-pane fade show active" id="relatorio">
-        <div class="row mb-3">
+        <div class="row mt-3">
           <div class="col-md-3">
             <label>Data início:</label>
             <input type="date" id="dataInicio" class="form-control">
@@ -47,193 +48,148 @@
           <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
             <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
-            <button class="btn btn-danger mw-2" onclick="exportarPDF()">PDF</button>
+            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Exportar Excel</button>
+            <button class="btn btn-danger" onclick="exportarRelatorioPDF()">Exportar PDF</button>
           </div>
         </div>
 
-        <table class="table table-bordered bg-white">
-          <thead class="table-light">
-            <tr>
-              <th>Nome</th>
-              <th>Avaliação</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaAvaliacoes"></tbody>
-        </table>
+        <div class="table-responsive mt-3" id="relatorioConteudo">
+          <table class="table table-bordered bg-white">
+            <thead class="table-light">
+              <tr>
+                <th>Nome</th>
+                <th>Avaliação</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaAvaliacoes"></tbody>
+          </table>
+        </div>
       </div>
 
-      <!-- Gráfico -->
-      <div class="tab-pane fade" id="grafico">
-        <div class="d-flex justify-content-between mb-2">
-          <h5 class="mt-3">Resumo de Avaliações <small id="dataAtualizacao" class="text-muted"></small></h5>
-          <button class="btn btn-danger mt-2" onclick="exportarGraficoPDF()">Exportar Gráfico (PDF)</button>
-        </div>
-        <canvas id="grafico" height="120"></canvas>
+      <div class="tab-pane fade pt-4" id="grafico">
+        <canvas id="graficoAvaliacoes" height="150"></canvas>
+        <p class="mt-2"><strong>Última atualização:</strong> <span id="ultimaData"></span></p>
+        <button class="btn btn-outline-danger mt-2" onclick="exportarGraficoPDF()">Exportar Gráfico PDF</button>
       </div>
     </div>
   </div>
 
 <script>
-  let dadosOriginais = [];
-  let chart;
+let dadosOriginais = [];
+let chart;
 
-  async function carregarAvaliacoes() {
-    try {
-      const resposta = await fetch('https://avaliation.onrender.com/avaliacoes');
-      const dados = await resposta.json();
-      dadosOriginais = dados;
-      carregarTabela(dados);
-      atualizarGrafico(dados);
-    } catch (erro) {
-      console.error("Erro ao carregar avaliações:", erro);
-    }
-  }
+async function carregarAvaliacoes() {
+  const res = await fetch("https://avaliation.onrender.com/avaliacoes");
+  const data = await res.json();
+  dadosOriginais = data;
+  carregarTabela(data);
+  atualizarGrafico(data);
+}
 
-  function carregarTabela(lista) {
-    const corpo = document.getElementById('tabelaAvaliacoes');
-    corpo.innerHTML = '';
-    lista.forEach(item => {
-      const linha = `<tr>
-        <td>${item.nome || '-'}</td>
-        <td>${item.avaliacao}</td>
-        <td>${new Date(item.data).toLocaleDateString()}</td>
-      </tr>`;
-      corpo.innerHTML += linha;
-    });
-  }
+function carregarTabela(lista) {
+  const corpo = document.getElementById('tabelaAvaliacoes');
+  corpo.innerHTML = '';
+  lista.forEach(item => {
+    const linha = `<tr>
+      <td>${item.nome || '-'}</td>
+      <td>${item.avaliacao}</td>
+      <td>${new Date(item.data).toLocaleDateString()}</td>
+    </tr>`;
+    corpo.innerHTML += linha;
+  });
+}
 
-  function filtrarDados() {
-    const inicioStr = document.getElementById('dataInicio').value;
-    const fimStr = document.getElementById('dataFim').value;
-    const tipo = document.getElementById('tipoAvaliacao').value;
+function filtrarDados() {
+  const inicio = new Date(document.getElementById('dataInicio').value + 'T00:00:00');
+  const fim = new Date(document.getElementById('dataFim').value + 'T23:59:59');
+  const tipo = document.getElementById('tipoAvaliacao').value;
 
-    const inicio = inicioStr ? new Date(inicioStr + 'T00:00:00') : null;
-    const fim = fimStr ? new Date(fimStr + 'T23:59:59') : null;
+  const filtrados = dadosOriginais.filter(item => {
+    const data = new Date(item.data);
+    const dentroData = (!isNaN(inicio) ? data >= inicio : true) && (!isNaN(fim) ? data <= fim : true);
+    const mesmoTipo = !tipo || item.avaliacao === tipo;
+    return dentroData && mesmoTipo;
+  });
 
-    const filtrados = dadosOriginais.filter(item => {
-      const dataItem = new Date(item.data);
-      const condData = (!inicio || dataItem >= inicio) && (!fim || dataItem <= fim);
-      const condTipo = !tipo || item.avaliacao === tipo;
-      return condData && condTipo;
-    });
+  carregarTabela(filtrados);
+  atualizarGrafico(filtrados);
+}
 
-    carregarTabela(filtrados);
-    atualizarGrafico(filtrados);
-  }
+function limparFiltros() {
+  document.getElementById('dataInicio').value = '';
+  document.getElementById('dataFim').value = '';
+  document.getElementById('tipoAvaliacao').value = '';
+  carregarTabela(dadosOriginais);
+  atualizarGrafico(dadosOriginais);
+}
 
-  function limparFiltros() {
-    document.getElementById('dataInicio').value = '';
-    document.getElementById('dataFim').value = '';
-    document.getElementById('tipoAvaliacao').value = '';
-    carregarTabela(dadosOriginais);
-    atualizarGrafico(dadosOriginais);
-  }
+function exportarParaExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(document.querySelector("table"));
+  XLSX.utils.book_append_sheet(wb, ws, "Avaliacoes");
+  XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
+}
 
-  function exportarParaExcel() {
-    const tabela = document.getElementById("tabelaAvaliacoes");
-    const wb = XLSX.utils.table_to_book(tabela, { sheet: "Relatorio" });
-    XLSX.writeFile(wb, "avaliacoes.xlsx");
-  }
+function exportarRelatorioPDF() {
+  const opt = { margin: 0.5, filename: 'relatorio_avaliacoes.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }};
+  html2pdf().set(opt).from(document.getElementById("relatorioConteudo")).save();
+}
 
-  async function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+function atualizarGrafico(dados) {
+  const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+  dados.forEach(d => contagem[d.avaliacao]++);
+  const total = Object.values(contagem).reduce((a, b) => a + b, 0);
+  const porcentagens = Object.values(contagem).map(q => ((q / total) * 100).toFixed(1));
+  const labels = Object.keys(contagem);
+  const cores = ['#198754', '#0dcaf0', '#ffc107', '#dc3545'];
 
-      doc.setFontSize(18);
-      doc.text("Relatório de Avaliações", 105, 15, { align: "center" });
-
-      const table = [];
-      const headers = [["Nome", "Avaliação", "Data"]];
-      const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-
-      rows.forEach(tr => {
-        const cols = tr.querySelectorAll("td");
-        if (cols.length)
-          table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
-      });
-
-      doc.autoTable({
-        head: headers,
-        body: table,
-        startY: 25,
-        theme: 'grid',
-        styles: { fontSize: 12 },
-        headStyles: { fillColor: [52, 58, 64] }
-      });
-
-      doc.save("relatorio-avaliacoes.pdf");
-    }
-
-  function exportarGraficoPDF() {
-    const canvas = document.getElementById("grafico");
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jspdf.jsPDF();
-    pdf.addImage(imgData, "PNG", 10, 10, 180, 100);
-    pdf.save("grafico_avaliacoes.pdf");
-  }
-
-  function atualizarGrafico(dados) {
-    const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
-    let ultimaData = '';
-
-    dados.forEach(item => {
-      contagem[item.avaliacao]++;
-      if (!ultimaData || new Date(item.data) > new Date(ultimaData)) {
-        ultimaData = item.data;
-      }
-    });
-
-    document.getElementById("dataAtualizacao").textContent = ultimaData ? ` - Atualizado em: ${new Date(ultimaData).toLocaleDateString()}` : '';
-
-    const labels = Object.keys(contagem);
-    const valores = Object.values(contagem);
-    const total = valores.reduce((a, b) => a + b, 0);
-    const porcentagens = valores.map(qtd => ((qtd / total) * 100).toFixed(1));
-
-    const cores = ['#28a745', '#17a2b8', '#ffc107', '#dc3545'];
-
-    if (chart) chart.destroy();
-
-    chart = new Chart(document.getElementById('grafico').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Quantidade de Avaliações',
-          data: valores,
-          backgroundColor: cores
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                const qtd = context.raw;
-                const perc = porcentagens[context.dataIndex];
-                return `Qtd: ${qtd} (${perc}%)`;
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Total'
-            }
+  const ctx = document.getElementById('graficoAvaliacoes').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Quantidade de Avaliações',
+        data: Object.values(contagem),
+        backgroundColor: cores
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Qtd: ${ctx.raw} (${porcentagens[ctx.dataIndex]}%)`
           }
         }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Total' }
+        }
       }
-    });
-  }
+    }
+  });
 
-  carregarAvaliacoes();
+  const ultimaData = dados.length ? new Date(Math.max(...dados.map(d => new Date(d.data)))).toLocaleString() : '-';
+  document.getElementById("ultimaData").textContent = ultimaData;
+}
+
+function exportarGraficoPDF() {
+  html2canvas(document.getElementById("graficoAvaliacoes")).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jspdf.jsPDF();
+    pdf.addImage(imgData, "PNG", 10, 10, 190, 100);
+    pdf.save("grafico_avaliacoes.pdf");
+  });
+}
+
+carregarAvaliacoes();
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
