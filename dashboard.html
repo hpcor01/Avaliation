@@ -13,7 +13,7 @@
 </head>
 <body class="bg-light">
   <div class="container py-4">
-    <h2 class="mb-4">Dashboard de Avaliações</h2>
+    <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
 
     <ul class="nav nav-tabs" id="tabMenu">
       <li class="nav-item">
@@ -135,30 +135,26 @@ async function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      doc.setFontSize(18);
-      doc.text("Relatório de Avaliações", 105, 15, { align: "center" });
-
-      const table = [];
-      const headers = [["Nome", "Avaliação", "Data"]];
+      doc.setFontSize(16);
+      doc.text("Relatório de Avaliações", 14, 20);
+      const tableRows = [['Nome', 'Avaliação', 'Data']];
       const rows = [...document.querySelectorAll("#tabelaAvaliacoes tr")];
-
       rows.forEach(tr => {
         const cols = tr.querySelectorAll("td");
         if (cols.length)
-          table.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+          tableRows.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
       });
 
-      doc.autoTable({
-        head: headers,
-        body: table,
-        startY: 25,
-        theme: 'grid',
-        styles: { fontSize: 12 },
-        headStyles: { fillColor: [52, 58, 64] }
+      let y = 30;
+      tableRows.forEach(row => {
+        doc.text(row.join("   "), 14, y);
+        y += 10;
       });
 
       doc.save("relatorio-avaliacoes.pdf");
     }
+
+    carregarAvaliacoes();
 
 function atualizarGrafico(dados) {
   const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
