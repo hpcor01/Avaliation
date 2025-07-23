@@ -13,6 +13,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-light">
+  <div id="loadingMsg" class="text-center text-secondary fw-bold">Carregando dados...</div>
   <div class="container py-4">
     <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
 
@@ -81,11 +82,14 @@ let dadosOriginais = [];
 let chart;
 
 async function carregarAvaliacoes() {
+  document.getElementById("loadingMsg").style.display = "block";
   const res = await fetch("https://avaliation.onrender.com/avaliacoes");
   const data = await res.json();
   dadosOriginais = data;
   carregarTabela(data);
+  document.getElementById("loadingMsg").style.display = "none";
   atualizarGrafico(data);
+  document.getElementById("loadingMsg").style.display = "none";
 }
 
 function carregarTabela(lista) {
