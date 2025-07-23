@@ -182,6 +182,7 @@
     function submitEvaluation() {
       const name = nameInput.value || 'Anônimo';
       const now = new Date().toISOString();
+      document.getElementById("enviandoMsg").style.display = "block";
 
       fetch('https://avaliation.onrender.com/avaliar', {
         method: 'POST',
@@ -190,6 +191,7 @@
       })
       .then(response => response.json())
       .then(() => {
+        document.getElementById("enviandoMsg").style.display = "none";
         identify.style.display = 'none';
         thanks.style.display = 'flex';
         speakText('Obrigado!');
@@ -205,6 +207,7 @@
         }, 3000);
       })
       .catch(err => {
+        document.getElementById("enviandoMsg").style.display = "none";
         alert('Erro ao enviar avaliação.');
         console.error(err);
       });
@@ -216,4 +219,7 @@
     };
   </script>
 </body>
+  <div id="enviandoMsg" class="text-center text-primary fw-bold" style="display:none; margin-top: 10px;">
+    Enviando avaliação...
+  </div>
 </html>
