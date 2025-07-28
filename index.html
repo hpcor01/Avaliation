@@ -196,15 +196,15 @@
         thanks.style.display = 'flex';
         speakText('Obrigado!');
         setTimeout(() => {
-          thanks.style.display = 'none';
-          nameInput.value = '';
-          showNameInput(false);
-          identifyQuestion.style.display = 'block';
-          yesBtn.style.display = 'inline-block';
-          noBtn.style.display = 'inline-block';
-          options.style.display = 'flex';
-          speakOptions();
-        }, 3000);
+        thanks.style.display = 'none';
+        nameInput.value = '';
+        showNameInput(false);
+        identifyQuestion.style.display = 'block';
+        yesBtn.style.display = 'inline-block';
+        noBtn.style.display = 'inline-block';
+        options.style.display = 'flex';
+        speakOptions();
+      }, 3000);
       })
       .catch(err => {
         document.getElementById("enviandoMsg").style.display = "none";
