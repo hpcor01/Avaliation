@@ -51,11 +51,10 @@
       justify-content: center;
       margin-top: 20px;
     }
-   .tooltip-wrapper {
-  position: relative;
-  display: inline-block;
+    .tooltip-wrapper {
+      position: relative;
+      display: inline-block;
     }
-    
     .tooltip {
       visibility: hidden;
       opacity: 0;
@@ -73,12 +72,10 @@
       white-space: nowrap;
       transition: opacity 0.3s;
     }
-    
     .tooltip-wrapper:hover .tooltip {
       visibility: visible;
       opacity: 1;
     }
-    
     .tooltip::after {
       content: "";
       position: absolute;
@@ -89,12 +86,17 @@
       border-style: solid;
       border-color: #333 transparent transparent transparent;
     }    
-
     #thanks {
       display: none;
       text-align: center;
       font-weight: bold;
       margin-top: 20px;
+    }
+    #enviandoMsg {
+      display: none;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #007bff;
     }
   </style>
 </head>
@@ -107,16 +109,16 @@
     <button class="button ruim" onclick="selectRating('Ruim')">🙁 Ruim</button>
 
     <div class="button-row">
-       <div class="tooltip-wrapper">
-          <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊</button>
-          <span class="tooltip">Repetir a pergunta</span>
-        </div>
-        <div class="tooltip-wrapper">
-          <button class="button" style="background-color:#555;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções.')">❓</button>
-          <span class="tooltip">Ajuda para avaliação</span>
-        </div>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊</button>
+        <span class="tooltip">Repetir a pergunta</span>
+      </div>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#555;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções.')">❓</button>
+        <span class="tooltip">Ajuda para avaliação</span>
       </div>
     </div>
+  </div>
 
   <div class="identify" id="identify">
     <p class="identify-question" id="identifyQuestion">Deseja se identificar?</p>
@@ -130,16 +132,18 @@
         <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊</button>
         <span class="tooltip">Repetir a pergunta</span>
       </div>
-
       <div class="tooltip-wrapper">
         <button class="button" style="background-color:#555;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo.')">❓</button>
         <span class="tooltip">Ajuda para identificação</span>
       </div>
+    </div>
   </div>
 
   <div class="thanks" id="thanks">
     <h2>Obrigado!</h2>
   </div>
+
+  <div id="enviandoMsg">Enviando avaliação...</div>
 
   <script>
     function speakText(text) {
@@ -159,7 +163,7 @@
 
     const options = document.getElementById('options');
     const identify = document.getElementById('identify');
-    const thanks = document.getElementById("thanks").style = "block";
+    const thanks = document.getElementById('thanks');
     const nameInput = document.getElementById('nameInput');
     const submitNameBtn = document.getElementById('submitNameBtn');
     const identifyQuestion = document.getElementById('identifyQuestion');
@@ -186,69 +190,46 @@
       }
     }
 
-  function submitEvaluation() {
-  const name = nameInput.value || 'Anônimo';
-  const now = new Date().toISOString();
-  document.getElementById("enviandoMsg").style.display = "block";
+    function submitEvaluation() {
+      const name = nameInput.value || 'Anônimo';
+      const now = new Date().toISOString();
+      document.getElementById("enviandoMsg").style.display = "block";
 
-  fetch('https://avaliation.onrender.com/avaliar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
-  })
-  /*.then(response => {
-    if (!response.ok) throw new Error('Erro na resposta da API');
-    return response.json();
-  })
-  .then(() => {
-    document.getElementById("enviandoMsg").style.display = "none";
-    identify.style.display = 'none';
-    thanks.style.display = 'flex';
-    speakText('Obrigado!');
-    setTimeout(() => {
-      thanks.style.display = 'none';
-      nameInput.value = '';
-      showNameInput(false);
-      identifyQuestion.style.display = 'block';
-      yesBtn.style.display = 'inline-block';
-      noBtn.style.display = 'inline-block';
-      options.style.display = 'flex';
-      speakOptions();
-    }, 3000); */
-    .then(async (response) => {
-      document.getElementById("enviandoMsg").style.display = "none";
-    
-      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-    
-      identify.style.display = 'none';
-      thanks.style.display = 'flex';
-      speakText('Obrigado!');
-      setTimeout(() => {
-        thanks.style.display = 'none';
-        nameInput.value = '';
-        showNameInput(false);
-        identifyQuestion.style.display = 'block';
-        yesBtn.style.display = 'inline-block';
-        noBtn.style.display = 'inline-block';
-        options.style.display = 'flex';
-        speakOptions();
-      }, 3000);
-    
-    
-  })
-  .catch(err => {
-    document.getElementById("enviandoMsg").style.display = "none";
-    alert('Erro ao enviar avaliação.');
-    console.error(err);
-  });
-}
+      fetch('https://avaliation.onrender.com/avaliar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
+      })
+      .then(async (response) => {
+        document.getElementById("enviandoMsg").style.display = "none";
+
+        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+        identify.style.display = 'none';
+        thanks.style.display = 'block';
+        speakText('Obrigado!');
+        setTimeout(() => {
+          thanks.style.display = 'none';
+          nameInput.value = '';
+          showNameInput(false);
+          identifyQuestion.style.display = 'block';
+          yesBtn.style.display = 'inline-block';
+          noBtn.style.display = 'inline-block';
+          options.style.display = 'flex';
+          speakOptions();
+        }, 3000);
+      })
+      .catch(err => {
+        document.getElementById("enviandoMsg").style.display = "none";
+        alert('Erro ao enviar avaliação.');
+        console.error(err);
+      });
+    }
+
     window.onload = () => {
       options.style.display = 'flex';
       speakOptions();
     };
   </script>
 </body>
-  <div id="enviandoMsg" class="text-center text-primary fw-bold" style="display:none; margin-top: 10px;">
-    Enviando avaliação...
-  </div>
 </html>
