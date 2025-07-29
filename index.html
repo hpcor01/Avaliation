@@ -186,7 +186,7 @@
       }
     }
 
-    function submitEvaluation() {
+  function submitEvaluation() {
   const name = nameInput.value || 'Anônimo';
   const now = new Date().toISOString();
   document.getElementById("enviandoMsg").style.display = "block";
@@ -196,7 +196,7 @@
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
   })
-  .then(response => {
+  /*.then(response => {
     if (!response.ok) throw new Error('Erro na resposta da API');
     return response.json();
   })
@@ -214,7 +214,35 @@
       noBtn.style.display = 'inline-block';
       options.style.display = 'flex';
       speakOptions();
+    }, 3000); */
+    .then(async (response) => {
+    const respostaTexto = await response.text(); // pega o corpo como texto
+    console.log("Resposta bruta:", respostaTexto);
+  
+    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+  
+    try {
+      const json = JSON.parse(respostaTexto);
+      console.log("JSON convertido:", json);
+    } catch (e) {
+      throw new Error("Resposta não é um JSON válido.");
+    }
+  
+    document.getElementById("enviandoMsg").style.display = "none";
+    identify.style.display = 'none';
+    thanks.style.display = 'flex';
+    speakText('Obrigado!');
+    setTimeout(() => {
+      thanks.style.display = 'none';
+      nameInput.value = '';
+      showNameInput(false);
+      identifyQuestion.style.display = 'block';
+      yesBtn.style.display = 'inline-block';
+      noBtn.style.display = 'inline-block';
+      options.style.display = 'flex';
+      speakOptions();
     }, 3000);
+    
   })
   .catch(err => {
     document.getElementById("enviandoMsg").style.display = "none";
