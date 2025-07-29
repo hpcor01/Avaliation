@@ -187,39 +187,41 @@
     }
 
     function submitEvaluation() {
-      const name = nameInput.value || 'Anônimo';
-      const now = new Date().toISOString();
-      document.getElementById("enviandoMsg").style.display = "block";
+  const name = nameInput.value || 'Anônimo';
+  const now = new Date().toISOString();
+  document.getElementById("enviandoMsg").style.display = "block";
 
-      fetch('https://avaliation.onrender.com/avaliar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
-      })
-      .then(response => response.json())
-      .then(() => {
-        document.getElementById("enviandoMsg").style.display = "none";
-        identify.style.display = 'none';
-        thanks.style.display = 'flex';
-        speakText('Obrigado!');
-        setTimeout(() => {
-        thanks.style.display = 'none';
-        nameInput.value = '';
-        showNameInput(false);
-        identifyQuestion.style.display = 'block';
-        yesBtn.style.display = 'inline-block';
-        noBtn.style.display = 'inline-block';
-        options.style.display = 'flex';
-        speakOptions();
-      }, 3000);
-      })
-      .catch(err => {
-        document.getElementById("enviandoMsg").style.display = "none";
-        alert('Erro ao enviar avaliação.');
-        console.error(err);
-      });
-    }
-
+  fetch('https://avaliation.onrender.com/avaliar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Erro na resposta da API');
+    return response.json();
+  })
+  .then(() => {
+    document.getElementById("enviandoMsg").style.display = "none";
+    identify.style.display = 'none';
+    thanks.style.display = 'flex';
+    speakText('Obrigado!');
+    setTimeout(() => {
+      thanks.style.display = 'none';
+      nameInput.value = '';
+      showNameInput(false);
+      identifyQuestion.style.display = 'block';
+      yesBtn.style.display = 'inline-block';
+      noBtn.style.display = 'inline-block';
+      options.style.display = 'flex';
+      speakOptions();
+    }, 3000);
+  })
+  .catch(err => {
+    document.getElementById("enviandoMsg").style.display = "none";
+    alert('Erro ao enviar avaliação.');
+    console.error(err);
+  });
+}
     window.onload = () => {
       options.style.display = 'flex';
       speakOptions();
