@@ -124,7 +124,11 @@
     <p class="identify-question" id="identifyQuestion">Deseja se identificar?</p>
     <button class="button yes" id="yesBtn" onclick="showNameInput(true)">Sim</button>
     <button class="button no" id="noBtn" onclick="submitEvaluation()">Não</button>
-    <input class="input-name" id="nameInput" type="text" placeholder="Digite seu nome" style="display:none;">
+    <div id="voiceInputWrapper" style="display:none; flex-direction: column; align-items: center;">
+      <input class="input-name" id="nameInput" type="text" placeholder="Diga ou digite seu nome">
+      <button class="button" onclick="startVoiceInput()">🎤 Falar nome</button>
+      <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()">Enviar</button>
+    </div>
     <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
 
     <div class="button-row">
@@ -161,6 +165,30 @@
       speakText('Deseja se identificar? Pressione Sim ou Não.');
     }
 
+    function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Reconhecimento de voz não é suportado neste navegador.");
+      return;
+    }
+
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+    
+      speakText("Pode falar seu nome agora.");
+      recognition.start();
+    
+      recognition.onresult = function(event) {
+        const name = event.results[0][0].transcript;
+        nameInput.value = name;
+      };
+    
+      recognition.onerror = function(event) {
+        alert('Erro ao reconhecer: ' + event.error);
+      };
+    }
+
     const options = document.getElementById('options');
     const identify = document.getElementById('identify');
     const thanks = document.getElementById('thanks');
@@ -184,9 +212,8 @@
         identifyQuestion.style.display = 'none';
         yesBtn.style.display = 'none';
         noBtn.style.display = 'none';
-        nameInput.style.display = 'block';
-        submitNameBtn.style.display = 'inline-block';
-        speakText('Digite seu nome e pressione Enviar.');
+        document.getElementById('voiceInputWrapper').style.display = 'flex';
+        speakText('Diga ou digite seu nome e pressione Enviar.');
       }
     }
 
