@@ -128,7 +128,7 @@
     <div id="voiceInputWrapper" style="display:none; flex-direction: column; align-items: center;">
       <input class="input-name" id="nameInput" type="text" placeholder="Diga ou digite seu nome">
       <button class="button" style="background-color:#191970; color:white;" onclick="startVoiceInput()">🎙️ Falar nome</button><br/>
-      <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()">☑️ Enviar</button>
+      <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()">✅ Enviar</button>
     </div>
     <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
 
@@ -145,7 +145,7 @@
   </div>
 
   <div class="thanks" id="thanks">
-    <h2>Obrigado!</h2>
+    <h2>🙋🏻‍♂️ Obrigado!</h2>
   </div>
 
   <div id="enviandoMsg">Enviando avaliação...</div>
@@ -187,6 +187,7 @@
     
       recognition.onerror = function(event) {
         alert('Erro ao reconhecer: ' + event.error);
+        speakText('Não foi possível reconhecer a voz.);
       };
     }
 
