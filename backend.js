@@ -19,25 +19,27 @@ client.connect()
   .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
 
 // 🔐 Rota de login para autenticar usuário
+// Nova rota para login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) return res.status(400).send('Usuário e senha são obrigatórios.');
 
   try {
-    const db = client.db(dbName);
-    const colLogin = db.collection('colLogin');
+    const db = client.db('dbAvalia');
+    const col = db.collection('colLogin');
 
-    const user = await colLogin.findOne({ username });
-    if (!user) return res.status(401).send('Usuário não encontrado.');
+    const user = await col.findOne({ 
+      'user.username': username, 
+      'user.password': password 
+    });
 
-    if (user.password !== password) {
-      return res.status(401).send('Senha incorreta.');
+    if (user) {
+      res.status(200).send({ ok: true, user: user.user });
+    } else {
+      res.status(401).send({ ok: false, message: 'Credenciais inválidas' });
     }
-
-    res.send({ ok: true, nome: user.nome });
   } catch (err) {
-    console.error('Erro ao autenticar login:', err);
-    res.status(500).send('Erro interno.');
+    console.error('Erro ao validar login:', err);
+    res.status(500).send({ ok: false, error: 'Erro no servidor' });
   }
 });
 
