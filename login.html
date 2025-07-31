@@ -73,7 +73,7 @@
 
       if (resposta.ok) {
         const dados = await resposta.json();
-        localStorage.setItem('usuarioLogado', dados.nome);
+        localStorage.setItem('usuarioLogado', dados.user.nome);
         window.location.href = 'dashboard.html';
       } else {
         document.getElementById('msgErro').style.display = 'block';
