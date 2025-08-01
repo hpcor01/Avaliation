@@ -36,6 +36,11 @@
   <div class="container py-4">
     <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 id="welcomeMessage" class="text-primary"></h5>
+      <button class="btn btn-outline-danger btn-sm" onclick="logout()">🚪 Sair</button>
+    </div>
+    
     <ul class="nav nav-tabs" id="tabMenu">
       <li class="nav-item">
         <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">📃Relatório</a>
@@ -60,6 +65,37 @@
   <button id="voltarTopo" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">⬆️ Topo</button>
 
   <script>
+
+    // Verifica se o usuário está logado
+  const usuarioLogado = sessionStorage.getItem('usuarioLogado');
+  if (!usuarioLogado) {
+    window.location.href = 'login.html';
+  } else {
+    document.getElementById('welcomeMessage').textContent = '👋🏻 Olá, ${usuarioLogado}!';
+  }
+
+  // Logout limpa e redireciona
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  }
+
+  // Encerra sessão após 15 minutos de inatividade
+  let tempoLimite = 15 * 60 * 1000;
+  let timeout;
+  const resetarTimer = () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(logout, tempoLimite);
+  };
+  window.onload = resetarTimer;
+  document.onmousemove = resetarTimer;
+  document.onkeydown = resetarTimer;
+
+  // Fecha sessão se aba for fechada
+  window.addEventListener("beforeunload", () => {
+    sessionStorage.clear();
+  });
+    
     window.addEventListener('scroll', () => {
       const botao = document.getElementById("voltarTopo");
       botao.style.display = window.scrollY > 200 ? 'block' : 'none';
