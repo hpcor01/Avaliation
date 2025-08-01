@@ -10,16 +10,30 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    #voltarTopo {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 999;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      font-size: 18px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.4s;
+    }
+    #voltarTopo:hover {
+      background: #084298;
+    }
+  </style>
 </head>
 <body class="bg-light">
-  <div id="loadingMsg" class="text-center text-secondary fw-bold">Carregando dados...</div>
   <div class="container py-4">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h4>👋 Olá, <span id="userNome"></span>!</h4>
-      <button onclick="logout()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px;">🚪 Sair</button>
-    </div>
-
     <h2 class="mb-4">📊 Dashboard de Avaliações</h2>
 
     <ul class="nav nav-tabs" id="tabMenu">
@@ -33,47 +47,8 @@
 
     <div class="tab-content">
       <div class="tab-pane fade show active" id="relatorio">
-        <div class="row mt-3">
-          <div class="col-md-3">
-            <label>Data início:</label>
-            <input type="date" id="dataInicio" class="form-control">
-          </div>
-          <div class="col-md-3">
-            <label>Data fim:</label>
-            <input type="date" id="dataFim" class="form-control">
-          </div>
-          <div class="col-md-3">
-            <label>Tipo de Avaliação:</label>
-            <select id="tipoAvaliacao" class="form-control">
-              <option value="">Todos</option>
-              <option value="Muito bom">Muito bom</option>
-              <option value="Bom">Bom</option>
-              <option value="Regular">Regular</option>
-              <option value="Ruim">Ruim</option>
-            </select>
-          </div>
-          <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
-            <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-            <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
-            <button class="btn btn-danger" onclick="exportarPDF()">PDF</button>
-          </div>
-        </div>
-
-        <div class="table-responsive mt-3" id="relatorioConteudo">
-          <table class="table table-bordered bg-white">
-            <thead class="table-light">
-              <tr>
-                <th>Nome</th>
-                <th>Avaliação</th>
-                <th>Data</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaAvaliacoes"></tbody>
-          </table>
-        </div>
+        <!-- Conteúdo do relatório aqui -->
       </div>
-
       <div class="tab-pane fade pt-4" id="grafico">
         <canvas id="graficoAvaliacoes" height="150"></canvas>
         <p class="mt-2"><strong>Última atualização:</strong> <span id="ultimaData"></span></p>
@@ -82,191 +57,21 @@
     </div>
   </div>
 
-<script>
-let dadosOriginais = [];
-let chart;
+  <button id="voltarTopo" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">⬆️ Topo</button>
 
-async function carregarAvaliacoes() {
-  document.getElementById("loadingMsg").style.display = "block";
-  const res = await fetch("https://avaliation.onrender.com/avaliacoes");
-  const data = await res.json();
-  dadosOriginais = data;
-  carregarTabela(data);
-  document.getElementById("loadingMsg").style.display = "none";
-  atualizarGrafico(data);
-  document.getElementById("loadingMsg").style.display = "none";
-}
+  <script>
+    window.addEventListener('scroll', () => {
+      const botao = document.getElementById("voltarTopo");
+      botao.style.display = window.scrollY > 200 ? 'block' : 'none';
+    });
 
-function carregarTabela(lista) {
-  const corpo = document.getElementById('tabelaAvaliacoes');
-  corpo.innerHTML = '';
-  lista.forEach(item => {
-    const linha = `<tr>
-      <td>${item.nome || '-'}</td>
-      <td>${item.avaliacao}</td>
-      <td>${new Date(item.data).toLocaleDateString()}</td>
-    </tr>`;
-    corpo.innerHTML += linha;
-  });
-}
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        setTimeout(() => window.scrollTo({top: 0, behavior: 'smooth'}), 150);
+      });
+    });
+  </script>
 
-function filtrarDados() {
-  const inicio = new Date(document.getElementById('dataInicio').value + 'T00:00:00');
-  const fim = new Date(document.getElementById('dataFim').value + 'T23:59:59');
-  const tipo = document.getElementById('tipoAvaliacao').value;
-
-  const filtrados = dadosOriginais.filter(item => {
-    const data = new Date(item.data);
-    const dentroData = (!isNaN(inicio) ? data >= inicio : true) && (!isNaN(fim) ? data <= fim : true);
-    const mesmoTipo = !tipo || item.avaliacao === tipo;
-    return dentroData && mesmoTipo;
-  });
-
-  carregarTabela(filtrados);
-  atualizarGrafico(filtrados);
-}
-
-function limparFiltros() {
-  document.getElementById('dataInicio').value = '';
-  document.getElementById('dataFim').value = '';
-  document.getElementById('tipoAvaliacao').value = '';
-  carregarTabela(dadosOriginais);
-  atualizarGrafico(dadosOriginais);
-}
-
-function exportarParaExcel() {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.table_to_sheet(document.querySelector("table"));
-  XLSX.utils.book_append_sheet(wb, ws, "Avaliacoes");
-  XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
-}
-
-function exportarPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const dataEmissao = new Date().toLocaleString();
-  doc.setFontSize(16);
-  doc.text("Relatório de Avaliações", 14, 20);
-  doc.setFontSize(10);
-  doc.text(`Emitido em: ${dataEmissao}`, 14, 28);
-
-  const headers = [["Nome", "Avaliação", "Data"]];
-  const body = [];
-
-  document.querySelectorAll("#tabelaAvaliacoes tr").forEach(tr => {
-    const cols = tr.querySelectorAll("td");
-    if (cols.length === 3) {
-      body.push([
-        cols[0].innerText,
-        cols[1].innerText,
-        cols[2].innerText
-      ]);
-    }
-  });
-
-  doc.autoTable({
-    head: headers,
-    body: body,
-    startY: 35,
-    styles: { fontSize: 10 },
-    theme: 'striped',
-    headStyles: { fillColor: [0, 102, 204] }
-  });
-
-  doc.save("relatorio-avaliacoes.pdf");
-}
-
-    carregarAvaliacoes();
-
-function atualizarGrafico(dados) {
-  const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
-  dados.forEach(d => contagem[d.avaliacao]++);
-  const total = Object.values(contagem).reduce((a, b) => a + b, 0);
-  const porcentagens = Object.values(contagem).map(q => ((q / total) * 100).toFixed(1));
-  const labels = Object.keys(contagem);
-  const cores = ['#198754', '#0dcaf0', '#ffc107', '#dc3545'];
-
-  const ctx = document.getElementById('graficoAvaliacoes').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Quantidade de Avaliações',
-        data: Object.values(contagem),
-        backgroundColor: cores
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `Qtd: ${ctx.raw} (${porcentagens[ctx.dataIndex]}%)`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'Total' }
-        }
-      }
-    }
-  });
-
-  const ultimaData = dados.length ? new Date(Math.max(...dados.map(d => new Date(d.data)))).toLocaleString() : '-';
-  document.getElementById("ultimaData").textContent = ultimaData;
-}
-
-function exportarGraficoPDF() {
-  html2canvas(document.getElementById("graficoAvaliacoes")).then(canvas => {
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jspdf.jsPDF();
-    pdf.addImage(imgData, "PNG", 10, 10, 190, 100);
-    pdf.save("grafico_avaliacoes.pdf");
-  });
-}
-
-carregarAvaliacoes();
-
- const nome = localStorage.getItem("usuarioLogado");
-
-if (!nome) {
-  window.location.href = "login.html"; // Protege a rota
-} else {
-  document.getElementById("userNome").textContent = nome;
-}
-
-let inatividadeTimeout;
-
-function resetarInatividade() {
-  clearTimeout(inatividadeTimeout);
-  inatividadeTimeout = setTimeout(() => {
-    alert("Sessão expirada por inatividade.");
-    logout();
-  }, 15 * 60 * 1000); // 15 minutos
-}
-
-['click', 'mousemove', 'keydown'].forEach(evt =>
-  document.addEventListener(evt, resetarInatividade)
-);
-
-resetarInatividade(); // Inicia o timer
-
-function logout() {
-  localStorage.removeItem("usuarioLogado");
-  window.location.href = "login.html";
-}
-
-
-window.addEventListener('beforeunload', () => {
-  localStorage.removeItem('usuarioLogado');
-}
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
