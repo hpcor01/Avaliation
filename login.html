@@ -59,7 +59,6 @@
     <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑Entrar</button>
     <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">⛔Usuário ou senha inválidos!</div>
   </div>
-
   <script>
     async function fazerLogin() {
       const username = document.getElementById("username").value.trim();
@@ -79,6 +78,8 @@
         document.getElementById('msgErro').style.display = 'block';
       }
     }
+
   </script>
+
 </body>
 </html>
