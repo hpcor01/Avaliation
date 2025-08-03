@@ -45,20 +45,22 @@
 </head>
 <body>
  <div class="login-card">
-  <h4>🔐 Login - Dashboard</h4>
-
-  <div class="input-group">
-    <i class="fa fa-user"></i>
-    <input type="text" placeholder="Usuário" id="username" required/>
-  </div>
-
-  <div class="input-group">
-    <i class="fa fa-lock"></i>
-    <input type="password" placeholder="Senha" id="password" required/>
-  </div>
-    <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑Entrar</button>
-    <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">⛔Usuário ou senha inválidos!</div>
-  </div>
+   <form id=fLogin>
+      <h4>🔐 Login - Dashboard</h4>
+    
+      <div class="input-group">
+        <i class="fa fa-user"></i>
+        <input type="text" placeholder="Usuário" id="username" required/>
+      </div>
+    
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input type="password" placeholder="Senha" id="password" required/>
+      </div>
+        <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑Entrar</button>
+        <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">⛔Usuário ou senha inválidos!</div>
+      </div>
+  </form>
   <script>
     async function fazerLogin() {
       const username = document.getElementById("username").value.trim();
