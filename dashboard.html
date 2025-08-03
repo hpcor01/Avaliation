@@ -2,224 +2,161 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📈Dashboard de Avaliações</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
 </head>
 <body class="bg-light">
-
-<script>
-  const usuario = localStorage.getItem('usuarioLogado');
-  if (!usuario) {
-    window.location.href = 'login.html';
-  }
-</script>
-
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center py-3">
-    <h4 class="mb-0">👋 Olá, <span id="nomeUsuario"></span></h4>
-    <button class="btn btn-outline-danger" onclick="logout()">🚪 Sair</button>
-  </div>
-
-  <ul class="nav nav-tabs" id="tabMenu">
-    <li class="nav-item">
-      <a class="nav-link active" data-bs-toggle="tab" href="#relatorio">📃Relatório</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="tab" href="#grafico">📊Gráfico</a>
-    </li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane fade show active" id="relatorio">
-      <div class="row mt-3">
-        <div class="col-md-3">
-          <label>Data início:</label>
-          <input type="date" id="dataInicio" class="form-control">
-        </div>
-        <div class="col-md-3">
-          <label>Data fim:</label>
-          <input type="date" id="dataFim" class="form-control">
-        </div>
-        <div class="col-md-3">
-          <label>Tipo de Avaliação:</label>
-          <select id="tipoAvaliacao" class="form-control">
-            <option value="">Todos</option>
-            <option value="Muito bom">Muito bom</option>
-            <option value="Bom">Bom</option>
-            <option value="Regular">Regular</option>
-            <option value="Ruim">Ruim</option>
-          </select>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <button class="btn btn-primary me-2" onclick="filtrarDados()">Filtrar</button>
-          <button class="btn btn-secondary me-2" onclick="limparFiltros()">Limpar</button>
-          <button class="btn btn-success me-2" onclick="exportarParaExcel()">Excel</button>
-          <button class="btn btn-danger" onclick="exportarRelatorioPDF()">PDF</button>
-        </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <span class="navbar-brand">⚙️ Painel do Sistema</span>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="mostrarSessao('relatorio')">🧾 Relatório</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="mostrarSessao('usuarios')">👤 Usuários</a>
+          </li>
+        </ul>
+        <span class="navbar-text me-3" id="saudacao">👋 Olá, Usuário</span>
+        <button class="btn btn-outline-light btn-sm" onclick="logout()">🚪 Sair</button>
       </div>
+    </div>
+  </nav>
 
-      <div class="table-responsive mt-3" id="relatorioConteudo">
-        <table class="table table-bordered bg-white">
-          <thead class="table-light">
-            <tr>
-              <th>Nome</th>
-              <th>Avaliação</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaAvaliacoes"></tbody>
-        </table>
+  <div class="container py-4">
+    <div id="telaInicial" class="text-center">
+      <h3>🙋🏻‍♂️ Bem-vindo à sua dashboard!</h3>
+      <p>▶️ Escolha uma das opções acima para começar.</p>
+    </div>
+
+    <div id="secaoRelatorio" style="display:none">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#abaLista">🧾Relatório</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#abaGrafico">📊 Gráfico</a>
+        </li>
+      </ul>
+      <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="abaLista">
+          <p>Conteúdo da tabela de relatório aqui...</p>
+        </div>
+        <div class="tab-pane fade" id="abaGrafico">
+          <p>Gráfico aparecerá aqui...</p>
+        </div>
       </div>
     </div>
 
-    <div class="tab-pane fade pt-4" id="grafico">
-      <canvas id="graficoAvaliacoes" height="150"></canvas>
-      <p class="mt-2"><strong>Última atualização:</strong> <span id="ultimaData"></span></p>
-      <button class="btn btn-outline-danger mt-2" onclick="exportarGraficoPDF()">Exportar Gráfico PDF</button>
+    <div id="secaoUsuarios" style="display:none">
+      <div class="d-flex justify-content-between mb-3">
+        <h5>👤 Usuários ativos</h5>
+        <button class="btn btn-sm btn-success" onclick="abrirModalCadastro()">➕ Novo Usuário</button>
+      </div>
+      <table class="table table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th>Nome</th>
+            <th>Usuário</th>
+            <th>Email</th>
+            <th>🪛 Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaUsuarios">
+          <!-- Preenchido por JS -->
+        </tbody>
+      </table>
     </div>
   </div>
-</div>
 
-<script>
-  let dadosOriginais = [];
-  let chart;
+  <!-- Modal de Cadastro -->
+  <div class="modal fade" id="modalCadastro" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cadastro de Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input class="form-control mb-2" id="novoNome" placeholder="Nome">
+          <input class="form-control mb-2" id="novoUsuario" placeholder="Usuário">
+          <input class="form-control mb-2" id="novoEmail" placeholder="Email">
+          <input class="form-control mb-2" id="novoSenha" placeholder="Senha" type="password">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">🚫 Cancelar</button>
+          <button class="btn btn-primary" onclick="salvarUsuario()">💾 Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  async function carregarAvaliacoes() {
-    const res = await fetch("https://avaliation.onrender.com/avaliacoes");
-    const data = await res.json();
-    dadosOriginais = data;
-    carregarTabela(data);
-    atualizarGrafico(data);
-  }
+  <script>
+    let usuariosMock = [
+      { nome: "João Silva", username: "joao", email: "joao@email.com" },
+      { nome: "Maria Lima", username: "maria", email: "maria@email.com" }
+    ];
 
-  function carregarTabela(lista) {
-    const corpo = document.getElementById('tabelaAvaliacoes');
-    corpo.innerHTML = '';
-    lista.forEach(item => {
-      const linha = `<tr>
-        <td>${item.nome || '-'}</td>
-        <td>${item.avaliacao}</td>
-        <td>${new Date(item.data).toLocaleDateString()}</td>
-      </tr>`;
-      corpo.innerHTML += linha;
-    });
-  }
+    function mostrarSessao(sessao) {
+      document.getElementById('telaInicial').style.display = 'none';
+      document.getElementById('secaoRelatorio').style.display = sessao === 'relatorio' ? 'block' : 'none';
+      document.getElementById('secaoUsuarios').style.display = sessao === 'usuarios' ? 'block' : 'none';
 
-  function filtrarDados() {
-    const inicio = new Date(document.getElementById('dataInicio').value + 'T00:00:00');
-    const fim = new Date(document.getElementById('dataFim').value + 'T23:59:59');
-    const tipo = document.getElementById('tipoAvaliacao').value;
+      if (sessao === 'usuarios') preencherUsuarios();
+    }
 
-    const filtrados = dadosOriginais.filter(item => {
-      const data = new Date(item.data);
-      const dentroData = (!isNaN(inicio) ? data >= inicio : true) && (!isNaN(fim) ? data <= fim : true);
-      const mesmoTipo = !tipo || item.avaliacao === tipo;
-      return dentroData && mesmoTipo;
-    });
+    function preencherUsuarios() {
+      const corpo = document.getElementById("tabelaUsuarios");
+      corpo.innerHTML = '';
+      usuariosMock.forEach(u => {
+        corpo.innerHTML += `
+          <tr>
+            <td>${u.nome}</td>
+            <td>${u.username}</td>
+            <td>${u.email}</td>
+            <td>
+              <button class="btn btn-sm btn-primary">Editar</button>
+              <button class="btn btn-sm btn-danger">Desativar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
 
-    carregarTabela(filtrados);
-    atualizarGrafico(filtrados);
-  }
+    function abrirModalCadastro() {
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novoUsuario').value = '';
+      document.getElementById('novoEmail').value = '';
+      document.getElementById('novoSenha').value = '';
+      new bootstrap.Modal(document.getElementById('modalCadastro')).show();
+    }
 
-  function limparFiltros() {
-    document.getElementById('dataInicio').value = '';
-    document.getElementById('dataFim').value = '';
-    document.getElementById('tipoAvaliacao').value = '';
-    carregarTabela(dadosOriginais);
-    atualizarGrafico(dadosOriginais);
-  }
+    function salvarUsuario() {
+      const nome = document.getElementById('novoNome').value;
+      const username = document.getElementById('novoUsuario').value;
+      const email = document.getElementById('novoEmail').value;
+      const senha = document.getElementById('novoSenha').value;
+      if (!nome || !username || !email || !senha) return alert("Preencha todos os campos");
 
-  function exportarParaExcel() {
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.table_to_sheet(document.querySelector("table"));
-    XLSX.utils.book_append_sheet(wb, ws, "Avaliacoes");
-    XLSX.writeFile(wb, "relatorio_avaliacoes.xlsx");
-  }
+      usuariosMock.push({ nome, username, email });
+      bootstrap.Modal.getInstance(document.getElementById('modalCadastro')).hide();
+      preencherUsuarios();
+    }
 
-  function atualizarGrafico(dados) {
-    const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
-    dados.forEach(d => contagem[d.avaliacao]++);
-    const total = Object.values(contagem).reduce((a, b) => a + b, 0);
-    const porcentagens = Object.values(contagem).map(q => ((q / total) * 100).toFixed(1));
-    const labels = Object.keys(contagem);
-    const cores = ['#198754', '#0dcaf0', '#ffc107', '#dc3545'];
+    function logout() {
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'login.html';
+    }
 
-    const ctx = document.getElementById('graficoAvaliacoes').getContext('2d');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Quantidade de Avaliações',
-          data: Object.values(contagem),
-          backgroundColor: cores
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `Qtd: ${ctx.raw} (${porcentagens[ctx.dataIndex]}%)`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: 'Total' }
-          }
-        }
-      }
-    });
+    window.onload = () => {
+      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+      if (!usuario) return window.location.href = 'login.html';
+      document.getElementById('saudacao').innerText = `Olá, ${usuario.nome}`;
+    }
+  </script>
 
-    const ultimaData = dados.length ? new Date(Math.max(...dados.map(d => new Date(d.data)))).toLocaleString() : '-';
-    document.getElementById("ultimaData").textContent = ultimaData;
-  }
-
-  function exportarGraficoPDF() {
-    html2canvas(document.getElementById("graficoAvaliacoes")).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jspdf.jsPDF();
-      pdf.addImage(imgData, "PNG", 10, 10, 190, 100);
-      pdf.save("grafico_avaliacoes.pdf");
-    });
-  }
-
-  function logout() {
-    localStorage.removeItem('usuarioLogado');
-    window.location.href = 'login.html';
-  }
-
-  window.onload = () => {
-    document.getElementById("nomeUsuario").textContent = localStorage.getItem("usuarioLogado") || "Visitante";
-    carregarAvaliacoes();
-    resetarTimeout();
-  }
-
-  let timeout;
-  function resetarTimeout() {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => logout(), 15 * 60 * 1000); // 15 min
-  }
-
-  window.onmousemove = resetarTimeout;
-  window.onkeypress = resetarTimeout;
-  window.onclick = resetarTimeout;
-  window.onscroll = resetarTimeout;
-  window.onkeydown = resetarTimeout;
-
-  window.addEventListener("beforeunload", function () {
-    localStorage.removeItem("usuarioLogado");
-  });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
