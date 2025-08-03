@@ -45,7 +45,6 @@
 </head>
 <body>
  <div class="login-card">
-   <form id=fLogin>
       <h4>🔐 Login - Dashboard</h4>
     
       <div class="input-group">
@@ -60,7 +59,6 @@
         <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑Entrar</button>
         <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">⛔Usuário ou senha inválidos!</div>
       </div>
-  </form>
   <script>
     async function fazerLogin() {
       const username = document.getElementById("username").value.trim();
