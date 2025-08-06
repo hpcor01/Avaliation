@@ -74,7 +74,7 @@
 
       if (resposta.ok) {
         const dados = await resposta.json();
-        localStorage.setItem('usuarioLogado', dados.user.nome);
+        localStorage.setItem('usuarioLogado', JSON.stringfy(dados.user));
         window.location.href = 'dashboard.html';
       } else {
         document.getElementById('msgErro').style.display = 'block';
