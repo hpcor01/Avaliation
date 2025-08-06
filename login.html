@@ -57,8 +57,10 @@
         <input type="password" placeholder="Senha" id="password" required/>
       </div>
         <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑Entrar</button>
-        <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">⛔Usuário ou senha inválidos!</div>
-      </div>
+        <div id="msgErro" class="text-danger text-center mt-3" style="display:none;">
+            <a>⛔Usuário ou senha inválidos!</a>
+        </div>
+  </div>
   <script>
     async function fazerLogin() {
       const username = document.getElementById("username").value.trim();
@@ -78,6 +80,16 @@
         document.getElementById('msgErro').style.display = 'block';
       }
     }
+
+  // Detecta pressionamento de tecla nos campos de entrada
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Evita comportamento padrão (como envio de formulário)
+      fazerLogin(); // Chama a função de login
+    }
+  });
+</script>
+
 
   </script>
 
