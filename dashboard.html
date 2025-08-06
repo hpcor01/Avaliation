@@ -93,7 +93,13 @@
       if (sessao === 'relatorio') carregarRelatorio();
       if (sessao === 'usuarios') carregarUsuarios();
     }
-  
+
+    window.onload = () => {
+        const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (!usuario) return window.location.href = 'login.html';
+        document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
+    }
+    
     function logout() {
       localStorage.removeItem('usuarioLogado');
       window.location.href = 'login.html';
@@ -144,11 +150,6 @@
         document.getElementById('loadingMsg').style.display = 'none';
       });
     }
-  
-    window.onload = () => {
-      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-      if (!usuario) return window.location.href = 'login.html';
-      document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
   
       // Logout automático após 15 minutos
       let logoutTimer;
