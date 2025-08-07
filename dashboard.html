@@ -142,7 +142,7 @@
     window.onload = () => {
       const user = JSON.parse(localStorage.getItem("usuarioLogado"));
       if (!user) return (window.location.href = "login.html");
-      document.getElementById('saudacao').innerText = '👋 Olá, ${usuario.nome}';
+      document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
 
       let logoutTimer;
       function resetInactivityTimer() {
