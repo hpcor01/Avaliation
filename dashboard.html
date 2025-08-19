@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
+  <title>Paine Administrativo</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
@@ -14,18 +14,18 @@
 <body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-      <span class="navbar-brand"><i class="bi bi-gear"></i> Painel do Sistema</span>
+      <span class="navbar-brand"><i class="bi bi-gear-fill"></i> Painel do Sistema</span>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="#" onclick="mostrarSessao('relatorio')"><i class="bi bi-file-earmark-text"></i> Relatório</a>
+            <a class="nav-link" href="#" onclick="mostrarSessao('relatorio')"><i class="bi bi-file-earmark-bar-graph-fill"></i> Relatório</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" onclick="mostrarSessao('usuarios')"><i class="bi bi-person"></i> Usuários</a>
+            <a class="nav-link" href="#" onclick="mostrarSessao('usuarios')"><i class="bi bi-person-fill"></i> Usuários</a>
           </li>
         </ul>
-        <span class="navbar-text me-3 text-white" id="saudacao"><i class="bi bi-hand-index-thumb"></i> Olá</span>
-        <button class="btn btn-outline-danger btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
+        <span class="navbar-text me-3 text-white" id="saudacao"><i class="bi bi-hand-index-thumb-fill"></i> Olá</span>
+        <button class="btn btn-outline-danger btn-sm" onclick="logout()"><i class="bi bi-x-square-fill"></i> Sair</button>
       </div>
     </div>
   </nav>
@@ -63,16 +63,52 @@
     <div id="secaoUsuarios" style="display:none">
       <div class="d-flex justify-content-between mb-3">
         <h5>👤 Usuários ativos</h5>
-        <button class="btn btn-sm btn-success">➕ Novo Usuário</button>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">➕ Novo Usuário</button>
       </div>
       <table class="table table-bordered">
         <thead class="table-light">
-          <tr><th>👤 Nome</th><th>👥 Usuário</th><th>📧 Email</th><th>🪛 Ações</th></tr>
+          <tr><th>Nome</th><th>Usuário</th><th>Email</th><th>🪛 Ações</th></tr>
         </thead>
         <tbody id="listaUsuarios"></tbody>
       </table>
     </div>
+
+  <!-- Modal Novo Usuário -->
+  <div class="modal fade" id="modalNovoUsuario" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cadastrar Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formNovoUsuario">
+            <div class="mb-3">
+              <label class="form-label">📝 Nome</label>
+              <input type="text" class="form-control" id="nomeUsuario" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">👤 Usuário</label>
+              <input type="text" class="form-control" id="usernameUsuario" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">📧 E-mail</label>
+              <input type="email" class="form-control" id="emailUsuario" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">🔑 Senha</label>
+              <input type="password" class="form-control" id="senhaUsuario" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="cadastrarUsuario()">Salvar</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -140,9 +176,10 @@
     }
 
     window.onload = () => {
-      const user = JSON.parse(localStorage.getItem("usuarioLogado"));
-      if (!user) return (window.location.href = "login.html");
+      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+      if (!usuario) return window.location.href = 'login.html';
       document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
+      // usuário vem direto de user do backend
 
       let logoutTimer;
       function resetInactivityTimer() {
@@ -163,6 +200,49 @@
         localStorage.removeItem('usuarioLogado');
       });
     }
+
+    async function cadastrarUsuario() {
+      const novo = {
+        username: document.getElementById('novoUsername').value,
+        password: document.getElementById('novoPassword').value,
+        nome: document.getElementById('novoNome').value,
+        email: document.getElementById('novoEmail').value
+      };
+    
+      const res = await fetch(`${API}/usuarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novo)
+      });
+    
+      if (res.ok) {
+        alert("✅ Usuário cadastrado com sucesso!");
+        carregarUsuarios();
+      } else {
+        const erro = await res.text();
+        alert("Erro: " + erro);
+      }
+    }
+
+    function carregarUsuarios() {
+      fetch(`${API}/usuarios`).then(res => res.json()).then(data => {
+        const lista = document.getElementById('listaUsuarios');
+        lista.innerHTML = '';
+        data.forEach(u => {
+          const linha = `<tr>
+              <td>${u.nome}</td>
+              <td>${u.username}</td>
+              <td>${u.email}</td>
+              <td>
+                <button class='btn btn-sm btn-primary'>✏️ Editar</button>
+                <button class='btn btn-sm btn-danger'>​⛔​ Desativar</button>
+              </td>
+            </tr>`;
+          lista.innerHTML += linha;
+        });
+        document.getElementById('loadingMsg').style.display = 'none';
+      });
+}
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
