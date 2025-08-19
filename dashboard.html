@@ -217,13 +217,16 @@
     
       if (res.ok) {
         alert("✅ Usuário cadastrado com sucesso!");
+        document.getElementById("formNovoUsuario").reset();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalNovoUsuario'));
+        modal.hide();
         carregarUsuarios();
       } else {
         const erro = await res.text();
         alert("Erro: " + erro);
       }
     }
-
+    
     function carregarUsuarios() {
       fetch(`${API}/usuarios`).then(res => res.json()).then(data => {
         const lista = document.getElementById('listaUsuarios');
