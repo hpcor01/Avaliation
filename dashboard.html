@@ -203,10 +203,10 @@
 
     async function cadastrarUsuario() {
       const novo = {
-        username: document.getElementById('novoUsername').value,
-        password: document.getElementById('novoPassword').value,
-        nome: document.getElementById('novoNome').value,
-        email: document.getElementById('novoEmail').value
+        username: document.getElementById('usernameUsuario').value,
+        password: document.getElementById('senhaUsuario').value,
+        nome: document.getElementById('nomeUsuario').value,
+        email: document.getElementById('emailUsuario').value
       };
     
       const res = await fetch(`${API}/usuarios`, {
