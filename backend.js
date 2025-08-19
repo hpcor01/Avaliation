@@ -73,5 +73,38 @@ app.get('/', (req, res) => {
   res.send('API de Avaliações está rodando.');
 });
 
+// LISTAR USUÁRIOS
+app.get('/usuarios', async (req, res) => {
+  try {
+    const db = client.db(dbAvalia);
+    const usersCol = db.collection("colLogin");
+    const usuarios = await usersCol.find({}).toArray();
+    res.json(usuarios.map(u => u.user)); // retorna apenas objeto "user"
+  } catch (err) {
+    res.status(500).send("Erro ao buscar usuários");
+  }
+});
+
+// CADASTRAR NOVO USUÁRIO
+app.post('/usuarios', async (req, res) => {
+  const { username, password, nome, email } = req.body;
+  if (!username || !password || !nome || !email) {
+    return res.status(400).send("Campos obrigatórios faltando.");
+  }
+  try {
+    const db = client.db(dbAvalia);
+    const usersCol = db.collection("colLogin");
+
+    const jaExiste = await usersCol.findOne({ "user.username": username });
+    if (jaExiste) return res.status(400).send("Usuário já existe.");
+
+    await usersCol.insertOne({ user: { username, password, nome, email } });
+    res.status(201).send("Usuário cadastrado com sucesso!");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao cadastrar usuário.");
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
