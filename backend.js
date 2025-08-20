@@ -73,36 +73,68 @@ app.get('/', (req, res) => {
   res.send('API de Avaliações está rodando.');
 });
 
-// LISTAR USUÁRIOS
-app.get('/usuarios', async (req, res) => {
+// Lista (apenas ativos)
+app.get('/usuarios', async (_req, res) => {
   try {
-    const db = client.db(dbAvalia);
-    const usersCol = db.collection("colLogin");
-    const usuarios = await usersCol.find({}).toArray();
-    res.json(usuarios.map(u => u.user)); // retorna apenas objeto "user"
+    const db = client.db(dbName);
+    const docs = await db.collection(colLogin)
+      .find({ ativo: { $ne: false } })
+      .project({ 'user.password': 0 })
+      .toArray();
+
+    const users = docs.map(d => ({
+      id: d._id,
+      username: d.user.username,
+      nome: d.user.nome,
+      email: d.user.email
+    }));
+    res.json(users);
   } catch (err) {
-    res.status(500).send("Erro ao buscar usuários");
+    console.error('Erro ao listar usuários:', err);
+    res.status(500).json({ error: 'Erro ao listar usuários.' });
   }
 });
 
-// CADASTRAR NOVO USUÁRIO
+// Criação
 app.post('/usuarios', async (req, res) => {
-  const { username, password, nome, email } = req.body;
+  const { username, password, nome, email } = req.body || {};
   if (!username || !password || !nome || !email) {
-    return res.status(400).send("Campos obrigatórios faltando.");
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
   try {
-    const db = client.db(dbAvalia);
-    const usersCol = db.collection("colLogin");
+    const db = client.db(dbName);
+    const col = db.collection(colLogin);
 
-    const jaExiste = await usersCol.findOne({ "user.username": username });
-    if (jaExiste) return res.status(400).send("Usuário já existe.");
+    const jaExiste = await col.findOne({ 'user.username': username });
+    if (jaExiste) {
+      return res.status(409).json({ error: 'Nome de usuário já existe.' });
+    }
 
-    await usersCol.insertOne({ user: { username, password, nome, email } });
-    res.status(201).send("Usuário cadastrado com sucesso!");
+    await col.insertOne({
+      user: { username, password, nome, email },
+      ativo: true,
+      createdAt: new Date()
+    });
+
+    res.status(201).json({ ok: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Erro ao cadastrar usuário.");
+    console.error('Erro ao cadastrar usuário:', err);
+    res.status(500).json({ error: 'Erro ao cadastrar usuário.' });
+  }
+});
+
+// (Opcional) Desativar
+app.patch('/usuarios/:id/desativar', async (req, res) => {
+  try {
+    const db = client.db(dbName);
+    await db.collection(colLogin).updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { ativo: false, desativadoEm: new Date() } }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao desativar usuário:', err);
+    res.status(500).json({ error: 'Erro ao desativar usuário.' });
   }
 });
 
