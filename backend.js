@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
 // Lista (apenas ativos)
 app.get('/usuarios', async (_req, res) => {
   try {
-    const db = client.db(dbName);
+    const db = client.db(dbAvalia);
     const docs = await db.collection(colLogin)
       .find({ ativo: { $ne: false } })
       .project({ 'user.password': 0 })
@@ -102,7 +102,7 @@ app.post('/usuarios', async (req, res) => {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
   try {
-    const db = client.db(dbName);
+    const db = client.db(dbAvalia);
     const col = db.collection(colLogin);
 
     const jaExiste = await col.findOne({ 'user.username': username });
@@ -126,7 +126,7 @@ app.post('/usuarios', async (req, res) => {
 // (Opcional) Desativar
 app.patch('/usuarios/:id/desativar', async (req, res) => {
   try {
-    const db = client.db(dbName);
+    const db = client.db(dbAvalia);
     await db.collection(colLogin).updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { ativo: false, desativadoEm: new Date() } }
