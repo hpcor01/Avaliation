@@ -67,7 +67,7 @@
         </div>
       </div>
       <div id="footer" class="footer">
-            <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Cordeiro </a> <?php echo date("YYYY"); ?> - &copy <p/>
+            <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Cordeiro </a> - &copy <span id="ano"</span>  <p/>
       </div>
     </div>
 
@@ -83,7 +83,7 @@
         <tbody id="listaUsuarios"></tbody>
       </table>
       <div id="footer" class="footer">
-            <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Cordeiro </a> <?php echo date("YYYY"); ?> - &copy <p/>
+            <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Cordeiro </a> - &copy <span id="ano"</span>  <p/>
       </div>
     </div>
 
@@ -126,6 +126,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const API = 'https://avaliation.onrender.com';
+
+    document.getElementById("ano").textContent = new Date().getFullYear();
 
     function mostrarSessao(sessao) {
       document.getElementById('telaInicial').style.display = 'none';
