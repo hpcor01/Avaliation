@@ -60,15 +60,21 @@
         </li>
       </ul>
       <div class="d-flex justify-content-between align-items-center mt-3">
-  <div class="d-flex gap-2">
-    <input type="date" id="dataInicio" class="form-control form-control-sm">
-    <input type="date" id="dataFim" class="form-control form-control-sm">
-    <button class="btn btn-sm btn-primary" onclick="filtrarRelatorio()">🔍 Filtrar</button>
+          <div class="d-flex gap-2">
+            <input type="date" id="dataInicio" class="form-control form-control-sm">
+            <input type="date" id="dataFim" class="form-control form-control-sm">
+            <button class="btn btn-sm btn-primary" onclick="filtrarRelatorio()">
+              <i class="bi bi-funnel-fill"></i> Filtrar
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="limparFiltro()">
+              <i class="bi bi-funnel"></i> Limpar
+            </button>
+          </div>
+      <div>
+    <button class="btn btn-sm btn-success" onclick="exportarExcel()">📊 Excel</button>
+    <button class="btn btn-sm btn-danger" onclick="exportarPDF()">📄 PDF</button>
   </div>
-  <div>
-    <button class="btn btn-sm btn-success" onclick="exportarExcel()"> Excel</button>
-    <button class="btn btn-sm btn-danger" onclick="exportarPDF()"> PDF</button>
-  </div>
+</div>
 </div>
       <div class="tab-content mt-3">
         <div class="tab-pane fade show active" id="abaLista">
@@ -157,21 +163,42 @@
       window.location.href = 'login.html';
     }
 
-    function carregarRelatorio() {
-      fetch(`${API}/avaliacoes`).then(res => res.json()).then(data => {
-        const tbody = document.getElementById('tabelaAvaliacao');
-        tbody.innerHTML = '';
-        const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
-
-        data.forEach(item => {
-          const row = `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${new Date(item.data).toLocaleString()}</td></tr>`;
-          tbody.innerHTML += row;
-          contagem[item.avaliacao]++;
-        });
-
-        atualizarGrafico(contagem);
+    let dadosRelatorio = [];   // todos os dados
+    let dadosFiltrados = [];   // apenas filtrados
+    
+    async function carregarRelatorio() {
+      try {
+        const res = await fetch(`${API}/avaliacoes`);
+        const data = await res.json();
+        dadosRelatorio = data;
+        dadosFiltrados = [...data]; // inicia sem filtro
+        renderTabela(dadosFiltrados);
+        renderGrafico(dadosFiltrados);
         document.getElementById('loadingMsg').style.display = 'none';
-      });
+      } catch (err) {
+        console.error("Erro ao carregar relatório:", err);
+        alert("Erro ao carregar relatório.");
+      }
+    }
+
+    function filtrarRelatorio() {
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
+    
+      dadosFiltrados = dadosRelatorio;
+      if (inicio) dadosFiltrados = dadosFiltrados.filter(d => new Date(d.data) >= new Date(inicio));
+      if (fim) dadosFiltrados = dadosFiltrados.filter(d => new Date(d.data) <= new Date(fim + "T23:59:59"));
+    
+      renderTabela(dadosFiltrados);
+      renderGrafico(dadosFiltrados);
+    }
+    
+    function limparFiltro() {
+      document.getElementById('dataInicio').value = "";
+      document.getElementById('dataFim').value = "";
+      dadosFiltrados = [...dadosRelatorio];
+      renderTabela(dadosFiltrados);
+      renderGrafico(dadosFiltrados);
     }
 
     function atualizarGrafico(dados) {
@@ -191,59 +218,32 @@
 
     let dadosRelatorio = []; // guarda dados carregados
 
-async function carregarRelatorio() {
-  try {
-    const res = await fetch(`${API}/avaliacoes`);
-    const data = await res.json();
-
-    dadosRelatorio = data; // guarda para filtro e exportação
-    renderTabela(data);
-    renderGrafico(data);
-    document.getElementById('loadingMsg').style.display = 'none';
-  } catch (err) {
-    console.error("Erro ao carregar relatório:", err);
-    alert("Erro ao carregar relatório.");
-  }
-}
-
-function filtrarRelatorio() {
-  const inicio = document.getElementById('dataInicio').value;
-  const fim = document.getElementById('dataFim').value;
-
-  let filtrados = dadosRelatorio;
-  if (inicio) filtrados = filtrados.filter(d => new Date(d.data) >= new Date(inicio));
-  if (fim) filtrados = filtrados.filter(d => new Date(d.data) <= new Date(fim + "T23:59:59"));
-
-  renderTabela(filtrados);
-  renderGrafico(filtrados);
-}
-
-function renderTabela(data) {
-  const tbody = document.getElementById('tabelaAvaliacao');
-  tbody.innerHTML = '';
-  data.forEach(item => {
-    tbody.innerHTML += `<tr>
-      <td>${item.nome}</td>
-      <td>${item.avaliacao}</td>
-      <td>${new Date(item.data).toLocaleString()}</td>
-    </tr>`;
-  });
-}
-
-function renderGrafico(data) {
-  const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
-  data.forEach(i => { contagem[i.avaliacao]++; });
-
-  const ctx = document.getElementById('graficoAvaliacao');
-  if (window.grafico) window.grafico.destroy(); // evita sobreposição
-  window.grafico = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(contagem),
-      datasets: [{ data: Object.values(contagem), backgroundColor: ['#28a745','#8bc34a','#ffc107','#dc3545'] }]
+     function renderTabela(data) {
+      const tbody = document.getElementById('tabelaAvaliacao');
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        tbody.innerHTML += `<tr>
+          <td>${item.nome}</td>
+          <td>${item.avaliacao}</td>
+          <td>${new Date(item.data).toLocaleString()}</td>
+        </tr>`;
+      });
     }
-  });
-}
+    
+    function renderGrafico(data) {
+      const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+      data.forEach(i => { contagem[i.avaliacao]++; });
+    
+      const ctx = document.getElementById('graficoAvaliacao');
+      if (window.grafico) window.grafico.destroy();
+      window.grafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(contagem),
+          datasets: [{ data: Object.values(contagem), backgroundColor: ['#28a745','#8bc34a','#ffc107','#dc3545'] }]
+        }
+      });
+    }
 
 function exportarPDF() {
   const { jsPDF } = window.jspdf;
