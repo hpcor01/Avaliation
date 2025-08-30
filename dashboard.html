@@ -52,14 +52,16 @@
         </li>
       </ul>
 
-      <!-- Botões de ação -->
-      <div class="d-flex justify-content-between my-3">
-        <div>
-          <button class="btn btn-sm btn-primary me-2" onclick="aplicarFiltro()">
+      <!-- Filtro e exportação -->
+      <div class="d-flex justify-content-between my-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+          <input type="date" class="form-control form-control-sm" id="dataInicio">
+          <input type="date" class="form-control form-control-sm" id="dataFim">
+          <button class="btn btn-sm btn-primary" onclick="aplicarFiltro()">
             <i class="bi bi-funnel-fill"></i> Filtrar
           </button>
-          <button class="btn btn-sm btn-secondary me-2" onclick="limparFiltro()">
-            <i class="bi bi-funnel"></i> Limpar Filtro
+          <button class="btn btn-sm btn-secondary" onclick="limparFiltro()">
+            <i class="bi bi-funnel"></i> Limpar
           </button>
         </div>
         <div>
@@ -88,20 +90,28 @@
     <div id="secaoUsuarios" style="display:none">
       <div class="d-flex justify-content-between mb-3">
         <h5>👤 Usuários ativos</h5>
-        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">➕ Novo Usuário</button>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">
+            <i class="bi bi-person-plus-fill">Novo Usuário</i>
+        </button>
       </div>
       <table class="table table-bordered">
         <thead class="table-light">
-          <tr><th>Nome</th><th>Usuário</th><th>Email</th><th>🪛 Ações</th></tr>
+          <tr><th>📝 Nome</th><th>👤Usuário</th><th>📧Email</th><th>🪛 Ações</th></tr>
         </thead>
         <tbody id="listaUsuarios"></tbody>
       </table>
     </div>
   </div>
 
+  <footer>
+    <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro </a> | © <script>document.write(new Date().getFullYear());</script></p>
+  </footer>
+
   <script>
     const API = 'https://avaliation.onrender.com';
+    let dadosOriginais = [];
     let dadosFiltrados = [];
+    let grafico = null;
 
     function mostrarSessao(sessao) {
       document.getElementById('telaInicial').style.display = 'none';
@@ -120,7 +130,8 @@
 
     function carregarRelatorio() {
       fetch(`${API}/avaliacoes`).then(res => res.json()).then(data => {
-        dadosFiltrados = data; // inicializa com todos os dados
+        dadosOriginais = data;
+        dadosFiltrados = [...dadosOriginais];
         renderTabela(dadosFiltrados);
         atualizarGrafico(dadosFiltrados);
         document.getElementById('loadingMsg').style.display = 'none';
@@ -140,7 +151,10 @@
       const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
       dados.forEach(item => contagem[item.avaliacao]++);
       const ctx = document.getElementById('graficoAvaliacao');
-      new Chart(ctx, {
+
+      if (grafico) grafico.destroy();
+
+      grafico = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: Object.keys(contagem),
@@ -155,16 +169,33 @@
 
     // Filtros
     function aplicarFiltro() {
-      const hoje = new Date();
-      const ontem = new Date();
-      ontem.setDate(hoje.getDate() - 1);
-      dadosFiltrados = dadosFiltrados.filter(d => new Date(d.data) >= ontem);
+      const inicio = document.getElementById("dataInicio").value;
+      const fim = document.getElementById("dataFim").value;
+
+      if (!inicio || !fim) {
+        alert("Selecione data inicial e final.");
+        return;
+      }
+
+      const dataInicio = new Date(inicio);
+      const dataFim = new Date(fim);
+      dataFim.setHours(23,59,59,999); // incluir o dia final inteiro
+
+      dadosFiltrados = dadosOriginais.filter(d => {
+        const dt = new Date(d.data);
+        return dt >= dataInicio && dt <= dataFim;
+      });
+
       renderTabela(dadosFiltrados);
       atualizarGrafico(dadosFiltrados);
     }
 
     function limparFiltro() {
-      carregarRelatorio();
+      document.getElementById("dataInicio").value = "";
+      document.getElementById("dataFim").value = "";
+      dadosFiltrados = [...dadosOriginais];
+      renderTabela(dadosFiltrados);
+      atualizarGrafico(dadosFiltrados);
     }
 
     // Exportações
