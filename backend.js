@@ -73,12 +73,13 @@ app.get('/', (req, res) => {
   res.send('API de Avaliações está rodando.');
 });
 
-// Lista (apenas ativos)
+// Lista usuários (apenas ativos)
 app.get('/usuarios', async (_req, res) => {
   try {
-    const db = client.db(dbName);
-    const docs = await db.collection(collectionLogin)
-      .find({ ativo: { $ne: false } })
+    const db = client.db(dbName);          
+    const col = db.collection('colLogin');   
+
+    const docs = await col.find({ ativo: { $ne: false } })
       .project({ 'user.password': 0 })
       .toArray();
 
@@ -88,6 +89,7 @@ app.get('/usuarios', async (_req, res) => {
       nome: d.user.nome,
       email: d.user.email
     }));
+
     res.json(users);
   } catch (err) {
     console.error('Erro ao listar usuários:', err);
@@ -95,17 +97,15 @@ app.get('/usuarios', async (_req, res) => {
   }
 });
 
-
-// Criação
+// Criar usuário
 app.post('/usuarios', async (req, res) => {
   const { username, password, nome, email } = req.body || {};
   if (!username || !password || !nome || !email) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
-
   try {
     const db = client.db(dbName);
-    const col = db.collection(collectionLogin);
+    const col = db.collection('colLogin');
 
     const jaExiste = await col.findOne({ 'user.username': username });
     if (jaExiste) {
