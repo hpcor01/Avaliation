@@ -127,12 +127,11 @@
   <script>
     const API = 'https://avaliation.onrender.com';
 
-    document.getElementById("ano").textContent = new Date().getFullYear();
-
     function mostrarSessao(sessao) {
       document.getElementById('telaInicial').style.display = 'none';
       document.getElementById('secaoRelatorio').style.display = sessao === 'relatorio' ? 'block' : 'none';
       document.getElementById('secaoUsuarios').style.display = sessao === 'usuarios' ? 'block' : 'none';
+      document.getElementById("ano").textContent = new Date().getFullYear();
       document.getElementById('loadingMsg').style.display = 'block';
 
       if (sessao === 'relatorio') carregarRelatorio();
