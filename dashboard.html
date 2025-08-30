@@ -103,7 +103,7 @@
       <div class="d-flex justify-content-between mb-3">
         <h5>👤 Usuários ativos</h5>
         <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">
-            <i class="bi bi-person-plus-fill">Novo Usuário</i>
+            <a class="bi bi-person-plus-fill"> Novo Usuário</a>
         </button>
       </div>
       <table class="table table-bordered">
@@ -263,8 +263,14 @@
         lista.innerHTML = '';
         data.forEach(u => {
           const linha = `<tr><td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
-            <td><button class='btn btn-sm btn-primary'>Editar</button>
-            <button class='btn btn-sm btn-danger'>Desativar</button></td></tr>`;
+            <td>
+                <button class='btn btn-sm btn-primary'>
+                    <i class="class="bi bi-pencil-square"> Editar</i>
+                </button>
+                <button class='btn btn-sm btn-danger'>
+                    <i class="bi bi-person-x-fill"> Desativar</i>
+                </button>
+            </td></tr>`;
           lista.innerHTML += linha;
         });
         document.getElementById('loadingMsg').style.display = 'none';
