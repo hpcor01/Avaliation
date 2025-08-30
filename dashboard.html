@@ -111,7 +111,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><a class="bi bi-x-circle-fill"> Cancelar</a></button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Cancelar</button>
           <button type="button" class="btn btn-primary" onclick="cadastrarUsuario()">Salvar</button>
         </div>
       </div>
@@ -129,13 +129,14 @@
       document.getElementById('telaInicial').style.display = 'none';
       document.getElementById('secaoRelatorio').style.display = sessao === 'relatorio' ? 'block' : 'none';
       document.getElementById('secaoUsuarios').style.display = sessao === 'usuarios' ? 'block' : 'none';
-      document.getElementById("ano").textContent = new Date().getFullYear();
       document.getElementById('loadingMsg').style.display = 'block';
 
       if (sessao === 'relatorio') carregarRelatorio();
       if (sessao === 'usuarios') carregarUsuarios();
     }
 
+    document.getElementById("ano").textContent = new Date().getFullYear();
+    
     function logout() {
       localStorage.removeItem('usuarioLogado');
       window.location.href = 'login.html';
