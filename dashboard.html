@@ -30,7 +30,7 @@
 <body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-      <span class="navbar-brand"><i class="bi bi-gear-fill"></i> Painel do Sistema</span>
+      <span class="navbar-brand"><i class="bi bi-gear-fill"></i> <a title="Dashboard" href="#"> Painel do Sistema</a></span>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
@@ -278,10 +278,38 @@
     }
 
     window.onload = () => {
-      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-      if (!usuario) return window.location.href = 'login.html';
-      document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
+      window.onload = () => {
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    // Protege a sessão
+    if (!usuario || !usuario.nome) {
+      window.location.href = 'login.html';
+      return;
     }
+
+    // Saudação personalizada
+    document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
+
+    // 🔒 Logout automático por inatividade (15 min)
+    let logoutTimer;
+    function resetInactivityTimer() {
+      clearTimeout(logoutTimer);
+      logoutTimer = setTimeout(() => {
+        alert("Sessão expirada por inatividade.");
+        logout();
+      }, 15 * 60 * 1000); // 15 minutos
+    }
+
+    ['mousemove', 'keypress', 'click'].forEach(evt =>
+      document.addEventListener(evt, resetInactivityTimer)
+    );
+    resetInactivityTimer();
+
+    // 🔒 Logout ao fechar aba ou navegador
+    window.addEventListener("beforeunload", () => {
+      localStorage.removeItem("usuarioLogado");
+    });
+  };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
