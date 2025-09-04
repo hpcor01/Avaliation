@@ -166,29 +166,39 @@
     }
 
     function filtrarDados() {
-      const inicio = document.getElementById('dataInicio').value;
-      const fim = document.getElementById('dataFim').value;
-      const tipo = document.getElementById('tipoAvaliacao').value;
-
-      dadosFiltrados = dadosOriginais.filter(item => {
-        const dataItem = new Date(item.data);
-        const dentroData = (!inicio || dataItem >= new Date(inicio)) &&
-                           (!fim || dataItem <= new Date(fim + "T23:59:59"));
-        const mesmoTipo = !tipo || item.avaliacao === tipo;
-        return dentroData && mesmoTipo;
-      });
-
-      renderTabela(dadosFiltrados);
-      atualizarGrafico(dadosFiltrados);
+      document.getElementById('loadingMsg').style.display = 'block';
+    
+      setTimeout(() => {
+        const inicio = document.getElementById('dataInicio').value;
+        const fim = document.getElementById('dataFim').value;
+        const tipo = document.getElementById('tipoAvaliacao').value;
+    
+        dadosFiltrados = dadosOriginais.filter(item => {
+          const dataItem = new Date(item.data);
+          const dentroData = (!inicio || dataItem >= new Date(inicio)) &&
+                             (!fim || dataItem <= new Date(fim + "T23:59:59"));
+          const mesmoTipo = !tipo || item.avaliacao === tipo;
+          return dentroData && mesmoTipo;
+        });
+    
+        renderTabela(dadosFiltrados);
+        atualizarGrafico(dadosFiltrados);
+        document.getElementById('loadingMsg').style.display = 'none';
+      }, 300); // pequeno delay p/ UX
     }
-
+    
     function limparFiltros() {
-      document.getElementById('dataInicio').value = '';
-      document.getElementById('dataFim').value = '';
-      document.getElementById('tipoAvaliacao').value = '';
-      dadosFiltrados = [...dadosOriginais];
-      renderTabela(dadosFiltrados);
-      atualizarGrafico(dadosFiltrados);
+      document.getElementById('loadingMsg').style.display = 'block';
+    
+      setTimeout(() => {
+        document.getElementById('dataInicio').value = '';
+        document.getElementById('dataFim').value = '';
+        document.getElementById('tipoAvaliacao').value = '';
+        dadosFiltrados = [...dadosOriginais];
+        renderTabela(dadosFiltrados);
+        atualizarGrafico(dadosFiltrados);
+        document.getElementById('loadingMsg').style.display = 'none';
+      }, 300);
     }
 
     function atualizarGrafico(dados) {
