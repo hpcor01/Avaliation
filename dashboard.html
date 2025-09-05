@@ -109,9 +109,45 @@
     </div>
   </div>
 
-  <footer class="footer" id="footer">
-    <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | © <span id="ano"></span> | Versão 1.0</p> 
+   <footer class="footer" id="footer">
+    <p>
+      Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
+      © <span id="ano"></span> | 
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.1</a>
+    </p> 
   </footer>
+
+  <div class="modal fade" id="modalChangelog" tabindex="-1" aria-labelledby="changelogLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changelogLabel">📜 Changelog - Painel Administrativo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <h6>v1.1 - 05/09/2025</h6>
+        <ul>
+          <li>Corrigido problema na <b>visualização comparativa do gráfico</b>, garantindo que os datasets sejam consistentes e preenchidos mesmo com valores zerados.</li>
+          <li>Rodapé atualizado para exibir a <b>versão atual (1.1)</b> do painel.</li>
+        </ul>
+        <hr>
+        <h6>v1.0 - 05/09/2025</h6>
+        <ul>
+          <li>Versão inicial do painel administrativo.</li>
+          <li>Seções incluídas: <b>Relatório</b> e <b>Usuários</b>.</li>
+          <li>Filtros de data e tipo de avaliação.</li>
+          <li>Gráficos de avaliações (simples e comparativo).</li>
+          <li>Exportação de relatórios para <b>Excel</b> e <b>PDF</b>.</li>
+          <li>Proteção de sessão com logout automático após 15 minutos de inatividade.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <script>
     const API = 'https://avaliation.onrender.com';
