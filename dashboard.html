@@ -14,17 +14,17 @@
     .navbar-nav .nav-link { color: white !important; }
     #loadingMsg { display: none; font-weight: bold; text-align: center; margin: 20px 0; }
     footer {
-        position: fixed;        /* fixa no rodapé */
-        bottom: 0;              /* encosta no fundo da tela */
+        position: fixed;
+        bottom: 0;
         left: 0;
-        width: 100%;            /* ocupa toda a largura */
-        text-align: center;     /* centraliza o texto */
-        background-color: #f4f4f4; /* cor de fundo suave */
-        padding: 10px 0;        /* espaçamento interno */
+        width: 100%;
+        text-align: center;
+        background-color: #f4f4f4;
+        padding: 10px 0;
         font-size: 14px;
         color: #333;
-        border-top: 1px solid #ddd; /* linha separando */
-      }
+        border-top: 1px solid #ddd;
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -85,11 +85,11 @@
           </table>
         </div>
         <div class="tab-pane fade" id="abaGrafico">
-          <div class="d-flex justify-content-end mb-2">
+          <canvas id="graficoAvaliacao" height="120"></canvas>
+          <div class="d-flex justify-content-end mt-2">
             <button class="btn btn-sm btn-outline-primary me-2" onclick="mostrarGraficoSimples()">📊 Visão simples</button>
             <button class="btn btn-sm btn-outline-success" onclick="mostrarGraficoComparativo()">📊 Visão comparativa</button>
           </div>
-          <canvas id="graficoAvaliacao" height="120"></canvas>
         </div>
       </div>
     </div>
@@ -108,8 +108,9 @@
       </table>
     </div>
   </div>
+
   <footer class="footer" id="footer">
-    <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | © <span id="ano"></span></p> 
+    <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | © <span id="ano"></span> | Versão 1.0</p> 
   </footer>
 
   <script>
@@ -196,20 +197,27 @@
     function mostrarGraficoComparativo() {
       if (graficoAtual) graficoAtual.destroy();
       const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
+
       const datas = Object.keys(dadosAgrupados);
+      if (datas.length === 0) return; // evita erro se não houver dados
+
+      const categorias = [
+        "Extremamente satisfeito",
+        "Satisfeito",
+        "Nem satisfeito, nem insatisfeito",
+        "Pouco satisfeito",
+        "Completamente insatisfeito"
+      ];
+
+      const datasets = categorias.map((cat, i) => ({
+        label: cat,
+        data: datas.map(d => dadosAgrupados[d][cat] || 0),
+        backgroundColor: ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"][i]
+      }));
 
       graficoAtual = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: datas,
-          datasets: [
-            { label: "Extremamente satisfeito", data: datas.map(d => dadosAgrupados[d]["Extremamente satisfeito"]||0), backgroundColor: "#0d6efd" },
-            { label: "Satisfeito", data: datas.map(d => dadosAgrupados[d]["Satisfeito"]||0), backgroundColor: "#fd7e14" },
-            { label: "Nem satisfeito, nem insatisfeito", data: datas.map(d => dadosAgrupados[d]["Nem satisfeito, nem insatisfeito"]||0), backgroundColor: "#198754" },
-            { label: "Pouco satisfeito", data: datas.map(d => dadosAgrupados[d]["Pouco satisfeito"]||0), backgroundColor: "#20c997" },
-            { label: "Completamente insatisfeito", data: datas.map(d => dadosAgrupados[d]["Completamente insatisfeito"]||0), backgroundColor: "#6f42c1" }
-          ]
-        },
+        data: { labels: datas, datasets },
         options: {
           responsive: true,
           scales: { x: { stacked: true }, y: { stacked: true } }
