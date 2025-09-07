@@ -11,6 +11,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <style>
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
     .navbar-nav .nav-link { color: white !important; }
     #loadingMsg { display: none; font-weight: bold; text-align: center; margin: 20px 0; }
     footer {
@@ -26,7 +31,10 @@
         border-top: 1px solid #ddd;
     }
     /* Evita que o conteúdo da página seja escondido pelo footer ao final */
-    .container { padding-bottom: 70px; }
+    .container {
+      flex: 1;
+      padding-bottom: 120px; /* espaço extra pro rodapé */
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -121,7 +129,7 @@
       Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> |
       © <span id="ano"></span> |
       <!-- Visible version stays as 1.3 per your request -->
-      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.3</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.4</a>
     </p>
   </footer>
 
@@ -260,28 +268,42 @@
     }
 
     function mostrarGraficoSimples() {
-      if (graficoAtual) graficoAtual.destroy();
-      const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
-      graficoAtual = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(contagemGlobal),
-          datasets: [{
-            label: 'Quantidade',
-            data: Object.values(contagemGlobal),
-            backgroundColor: ['#0d6efd','#fd7e14','#198754','#20c997','#6f42c1']
-          }]
-        }
-      });
-    }
+        if (graficoAtual) graficoAtual.destroy();
+        const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
+      
+        const categorias = [
+          "Extremamente satisfeito",
+          "Satisfeito",
+          "Nem satisfeito, nem insatisfeito",
+          "Pouco satisfeito",
+          "Completamente insatisfeito"
+        ];
+        const cores = ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"];
+      
+        const datasets = categorias.map((cat, i) => ({
+          label: cat,
+          data: [contagemGlobal[cat] || 0],
+          backgroundColor: cores[i]
+        }));
+      
+        graficoAtual = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Avaliações'],
+            datasets
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
 
     function mostrarGraficoComparativo() {
         if (graficoAtual) graficoAtual.destroy();
         const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
       
-        // Ordena as datas (YYYY-MM-DD)
         const datas = Object.keys(dadosAgrupados).sort();
-      
         if (datas.length === 0) return;
       
         const categorias = [
@@ -291,34 +313,28 @@
           "Pouco satisfeito",
           "Completamente insatisfeito"
         ];
+        const cores = ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"];
       
         const datasets = categorias.map((cat, i) => ({
           label: cat,
-          data: datas.map(d => dadosAgrupados[d][cat] || 0),
-          backgroundColor: ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"][i],
-          stack: "Stack 0"
+          data: datas.map(d => (dadosAgrupados[d] && dadosAgrupados[d][cat]) ? dadosAgrupados[d][cat] : 0),
+          backgroundColor: cores[i],
+          stack: 'stack1'
         }));
       
         graficoAtual = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: datas.map(d => dadosAgrupados[d].label), // datas formatadas
+            labels: datas.map(d => dadosAgrupados[d].label),
             datasets
           },
           options: {
             responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-              tooltip: { mode: 'index', intersect: false }
-            },
-            scales: { 
-              x: { stacked: true }, 
-              y: { stacked: true, beginAtZero: true } 
-            }
+            plugins: { legend: { position: 'bottom' } },
+            scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
           }
         });
       }
-
 
     function exportarExcel() {
       const ws = XLSX.utils.json_to_sheet(dadosFiltrados.map(d => ({
@@ -335,14 +351,14 @@
 
       if (document.querySelector("#abaLista").classList.contains("active")) {
         doc.setFontSize(14);
-        doc.text("📋 Relatório de Avaliações", 14, 15);
+        doc.text("Relatório de Avaliações", 14, 15);
         doc.autoTable({
           startY: 25,
           head: [['Nome', 'Avaliação', 'Data']],
           body: dadosFiltrados.map(d => [d.nome, d.avaliacao, new Date(d.data).toLocaleDateString("pt-BR")]),
         });
       } else {
-        doc.text("📊 Gráfico de Avaliações", 14, 15);
+        doc.text("Gráfico de Avaliações", 14, 15);
         const canvas = document.getElementById('graficoAvaliacao');
         const imgData = canvas.toDataURL('image/png');
         doc.addImage(imgData, 'PNG', 15, 25, 180, 100);
@@ -522,3 +538,4 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
