@@ -25,6 +25,8 @@
         color: #333;
         border-top: 1px solid #ddd;
     }
+    /* Evita que o conteúdo da página seja escondido pelo footer ao final */
+    .container { padding-bottom: 70px; }
   </style>
 </head>
 <body class="bg-light">
@@ -83,6 +85,8 @@
             <thead><tr><th>👤 Nome</th><th>📝 Avaliação</th><th>🗓️ Data</th></tr></thead>
             <tbody id="tabelaAvaliacao"></tbody>
           </table>
+          <!-- Controles de paginação -->
+          <div id="paginacao" class="d-flex justify-content-center mt-3"></div>
         </div>
         <div class="tab-pane fade" id="abaGrafico">
           <canvas id="graficoAvaliacao" height="120"></canvas>
@@ -109,52 +113,45 @@
     </div>
   </div>
 
-   <footer class="footer" id="footer">
+  <footer class="footer" id="footer">
     <p>
-      Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
-      © <span id="ano"></span> | 
-      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.1</a>
-    </p> 
+      Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> |
+      © <span id="ano"></span> |
+      <!-- Visible version stays as 1.3 per your request -->
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.3</a>
+    </p>
   </footer>
 
+  <!-- Modal Changelog (conteúdo será carregado dinamicamente de changelog.md) -->
   <div class="modal fade" id="modalChangelog" tabindex="-1" aria-labelledby="changelogLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="changelogLabel">📜 Changelog - Painel Administrativo</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-      </div>
-      <div class="modal-body">
-        <h6>v1.1 - 05/09/2025</h6>
-        <ul>
-          <li>Corrigido problema na <b>visualização comparativa do gráfico</b>, garantindo que os datasets sejam consistentes e preenchidos mesmo com valores zerados.</li>
-          <li>Rodapé atualizado para exibir a <b>versão atual (1.1)</b> do painel.</li>
-        </ul>
-        <hr>
-        <h6>v1.0 - 05/09/2025</h6>
-        <ul>
-          <li>Versão inicial do painel administrativo.</li>
-          <li>Seções incluídas: <b>Relatório</b> e <b>Usuários</b>.</li>
-          <li>Filtros de data e tipo de avaliação.</li>
-          <li>Gráficos de avaliações (simples e comparativo).</li>
-          <li>Exportação de relatórios para <b>Excel</b> e <b>PDF</b>.</li>
-          <li>Proteção de sessão com logout automático após 15 minutos de inatividade.</li>
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changelogLabel">📜 Changelog - Painel Administrativo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="conteudoChangelog">
+          <p class="text-muted">Carregando changelog...</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
 
   <script>
+    // Versões (interno vs exibido)
+    const internalVersion = 'v1.4'; // versão interna real
+    const visibleVersion = 'v1.3';  // exibida no rodapé (conforme pedido)
+
     const API = 'https://avaliation.onrender.com';
     let contagemGlobal = {};
     let dadosAgrupados = {};
     let dadosFiltrados = [];
     let graficoAtual;
+    let paginaAtual = 1;
+    const itensPorPagina = 10;
 
     document.getElementById("ano").textContent = new Date().getFullYear();
 
@@ -175,9 +172,6 @@
 
     function carregarRelatorio() {
       fetch(`${API}/avaliacoes`).then(res => res.json()).then(data => {
-        const tbody = document.getElementById('tabelaAvaliacao');
-        tbody.innerHTML = '';
-
         const inicio = document.getElementById('dataInicio').value;
         const fim = document.getElementById('dataFim').value;
 
@@ -192,19 +186,31 @@
         dadosAgrupados = {};
 
         dadosFiltrados.forEach(item => {
-          const dt = new Date(item.data).toLocaleDateString();
-          tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${dt}</td></tr>`;
+          const dtKey = new Date(item.data).toISOString().split("T")[0]; // chave padronizada YYYY-MM-DD
+          const dtLabel = new Date(item.data).toLocaleDateString("pt-BR");
 
           contagemGlobal[item.avaliacao] = (contagemGlobal[item.avaliacao] || 0) + 1;
 
-          if (!dadosAgrupados[dt]) {
-            dadosAgrupados[dt] = { "Extremamente satisfeito":0, "Satisfeito":0, "Nem satisfeito, nem insatisfeito":0, "Pouco satisfeito":0, "Completamente insatisfeito":0 };
+          if (!dadosAgrupados[dtKey]) {
+            dadosAgrupados[dtKey] = {
+              "Extremamente satisfeito": 0,
+              "Satisfeito": 0,
+              "Nem satisfeito, nem insatisfeito": 0,
+              "Pouco satisfeito": 0,
+              "Completamente insatisfeito": 0,
+              label: dtLabel
+            };
           }
-          dadosAgrupados[dt][item.avaliacao] = (dadosAgrupados[dt][item.avaliacao] || 0) + 1;
+          dadosAgrupados[dtKey][item.avaliacao] = (dadosAgrupados[dtKey][item.avaliacao] || 0) + 1;
         });
 
         document.getElementById('loadingMsg').style.display = 'none';
+        paginaAtual = 1;
+        renderTabelaPagina();
         mostrarGraficoSimples();
+      }).catch(err => {
+        console.error('Erro ao carregar avaliações:', err);
+        document.getElementById('loadingMsg').style.display = 'none';
       });
     }
 
@@ -212,6 +218,42 @@
       document.getElementById('dataInicio').value = '';
       document.getElementById('dataFim').value = '';
       carregarRelatorio();
+    }
+
+    function renderTabelaPagina() {
+      const tbody = document.getElementById('tabelaAvaliacao');
+      tbody.innerHTML = '';
+
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const paginaDados = dadosFiltrados.slice(inicio, fim);
+
+      paginaDados.forEach(item => {
+        const dt = new Date(item.data).toLocaleDateString("pt-BR");
+        tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${dt}</td></tr>`;
+      });
+
+      renderPaginacao();
+    }
+
+    function renderPaginacao() {
+      const totalPaginas = Math.ceil(dadosFiltrados.length / itensPorPagina) || 1;
+      const paginacaoDiv = document.getElementById('paginacao');
+      paginacaoDiv.innerHTML = '';
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        paginacaoDiv.innerHTML += `
+          <button class="btn btn-sm ${i === paginaAtual ? 'btn-primary' : 'btn-outline-primary'} me-1"
+            onclick="mudarPagina(${i})">${i}</button>`;
+      }
+    }
+
+    function mudarPagina(pagina) {
+      paginaAtual = pagina;
+      renderTabelaPagina();
+      // rola para topo da tabela (opcional, melhora UX)
+      const tabela = document.getElementById('tabelaAvaliacao');
+      tabela.scrollIntoView({behavior: 'smooth', block: 'start'});
     }
 
     function mostrarGraficoSimples() {
@@ -235,7 +277,7 @@
       const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
 
       const datas = Object.keys(dadosAgrupados);
-      if (datas.length === 0) return; // evita erro se não houver dados
+      if (datas.length === 0) return;
 
       const categorias = [
         "Extremamente satisfeito",
@@ -253,7 +295,10 @@
 
       graficoAtual = new Chart(ctx, {
         type: 'bar',
-        data: { labels: datas, datasets },
+        data: {
+          labels: datas.map(d => dadosAgrupados[d].label),
+          datasets
+        },
         options: {
           responsive: true,
           scales: { x: { stacked: true }, y: { stacked: true } }
@@ -263,7 +308,7 @@
 
     function exportarExcel() {
       const ws = XLSX.utils.json_to_sheet(dadosFiltrados.map(d => ({
-        Nome: d.nome, Avaliação: d.avaliacao, Data: new Date(d.data).toLocaleDateString()
+        Nome: d.nome, Avaliação: d.avaliacao, Data: new Date(d.data).toLocaleDateString("pt-BR")
       })));
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
@@ -280,7 +325,7 @@
         doc.autoTable({
           startY: 25,
           head: [['Nome', 'Avaliação', 'Data']],
-          body: dadosFiltrados.map(d => [d.nome, d.avaliacao, new Date(d.data).toLocaleDateString()]),
+          body: dadosFiltrados.map(d => [d.nome, d.avaliacao, new Date(d.data).toLocaleDateString("pt-BR")]),
         });
       } else {
         doc.text("📊 Gráfico de Avaliações", 14, 15);
@@ -303,8 +348,142 @@
           lista.innerHTML += linha;
         });
         document.getElementById('loadingMsg').style.display = 'none';
+      }).catch(err => {
+        console.error('Erro ao carregar usuários:', err);
+        document.getElementById('loadingMsg').style.display = 'none';
       });
     }
+
+    // --- Carregamento dinâmico do changelog.md ---
+    // Se o fetch falhar (ex.: abriu via file://), mostramos fallback embutido.
+    const embeddedChangelogHTML = `
+      <h6>v1.4 - 06/09/2025</h6>
+      <ul>
+        <li>Implementado carregamento dinâmico do <code>changelog.md</code> no modal/lightbox.</li>
+        <li>O modal lê e renderiza automaticamente o arquivo <code>changelog.md</code> (formato Markdown).</li>
+        <li>Por solicitação, o rodapé continua exibindo <b>Versão 1.3</b> enquanto a versão interna é <b>v1.4</b>.</li>
+        <li>Fallback: se o <code>changelog.md</code> não estiver disponível, o modal exibe este conteúdo embutido.</li>
+      </ul>
+      <hr>
+      <h6>v1.3 - 05/09/2025</h6>
+      <ul>
+        <li>Adicionado modal/lightbox para exibir o changelog diretamente no painel.</li>
+        <li>Rodapé atualizado com link da versão.</li>
+      </ul>
+      <hr>
+      <h6>v1.2 - 05/09/2025</h6>
+      <ul>
+        <li>Corrigida a inconsistência no <b>gráfico comparativo</b>: datas agora padronizadas em <code>YYYY-MM-DD</code>.</li>
+        <li>Adicionada <b>paginação</b> na lista de relatórios (10 registros por página).</li>
+      </ul>
+      <hr>
+      <h6>v1.1 - 05/09/2025</h6>
+      <ul>
+        <li>Corrigido problema na <b>visualização comparativa do gráfico</b>, garantindo consistência nos datasets.</li>
+        <li>Rodapé atualizado para exibir a versão atual.</li>
+      </ul>
+      <hr>
+      <h6>v1.0 - 05/09/2025</h6>
+      <ul>
+        <li>Versão inicial do painel administrativo.</li>
+        <li>Seções incluidas: <b>Relatório</b> e <b>Usuários</b>.</li>
+        <li>Filtros de data e tipo de avaliação.</li>
+        <li>Gráficos de avaliações (simples e comparativo).</li>
+        <li>Exportação de relatórios para <b>Excel</b> e <b>PDF</b>.</li>
+        <li>Proteção de sessão com logout automático após 15 minutos de inatividade.</li>
+      </ul>
+    `;
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function inlineFormat(text) {
+      // links [text](url)
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      // bold **text**
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // italic *text*
+      text = text.replace(/(^|[^*])\*(?!\*)(.*?)\*(?!\*)/g, '$1<i>$2</i>');
+      // inline code `code`
+      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+      return text;
+    }
+
+    function renderMarkdownToHTML(md) {
+      const lines = md.replace(/\r/g,'').split('\n');
+      let out = '';
+      let listOpen = false;
+      let inCodeBlock = false;
+
+      for (let i=0;i<lines.length;i++) {
+        let line = lines[i];
+
+        if (line.startsWith('```')) {
+          inCodeBlock = !inCodeBlock;
+          if (inCodeBlock) { out += '<pre><code>'; }
+          else { out += '</code></pre>'; }
+          continue;
+        }
+
+        if (inCodeBlock) {
+          out += escapeHtml(line) + '\n';
+          continue;
+        }
+
+        if (/^#{1,6}\s+/.test(line)) {
+          if (listOpen) { out += '</ul>'; listOpen = false; }
+          const m = line.match(/^(#{1,6})\s+(.*)$/);
+          const level = m[1].length;
+          let tag = 'h6';
+          if (level === 1) tag = 'h4';
+          else if (level === 2) tag = 'h5';
+          else tag = 'h6';
+          out += `<${tag}>${inlineFormat(m[2])}</${tag}>`;
+          continue;
+        }
+
+        if (/^[-*]\s+/.test(line)) {
+          if (!listOpen) { out += '<ul>'; listOpen = true; }
+          out += `<li>${inlineFormat(line.replace(/^[-*]\s+/,''))}</li>`;
+          continue;
+        }
+
+        if (line.trim() === '') {
+          if (listOpen) { out += '</ul>'; listOpen = false; }
+          out += '<br />';
+          continue;
+        }
+
+        out += `<p>${inlineFormat(line)}</p>`;
+      }
+
+      if (listOpen) out += '</ul>';
+      if (inCodeBlock) out += '</code></pre>';
+
+      return out;
+    }
+
+    async function carregarChangelog() {
+      const container = document.getElementById('conteudoChangelog');
+      container.innerHTML = '<p class="text-muted">Carregando changelog...</p>';
+      try {
+        const resp = await fetch('changelog.md', {cache: "no-store"});
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const md = await resp.text();
+        const html = renderMarkdownToHTML(md);
+        container.innerHTML = html;
+      } catch (err) {
+        console.warn('Falha ao carregar changelog.md, usando fallback embutido. Erro:', err);
+        container.innerHTML = embeddedChangelogHTML;
+      }
+    }
+
+    // Carrega sempre que o modal começar a abrir
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalEl = document.getElementById('modalChangelog');
+      if (modalEl) modalEl.addEventListener('show.bs.modal', carregarChangelog);
+    });
 
     // Proteção da sessão
     window.onload = () => {
