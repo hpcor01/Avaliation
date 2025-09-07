@@ -273,38 +273,49 @@
     }
 
     function mostrarGraficoComparativo() {
-      if (graficoAtual) graficoAtual.destroy();
-      const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
+        if (graficoAtual) graficoAtual.destroy();
+        const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
+      
+        // Ordena as datas (YYYY-MM-DD)
+        const datas = Object.keys(dadosAgrupados).sort();
+      
+        if (datas.length === 0) return;
+      
+        const categorias = [
+          "Extremamente satisfeito",
+          "Satisfeito",
+          "Nem satisfeito, nem insatisfeito",
+          "Pouco satisfeito",
+          "Completamente insatisfeito"
+        ];
+      
+        const datasets = categorias.map((cat, i) => ({
+          label: cat,
+          data: datas.map(d => dadosAgrupados[d][cat] || 0),
+          backgroundColor: ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"][i],
+          stack: "Stack 0"
+        }));
+      
+        graficoAtual = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: datas.map(d => dadosAgrupados[d].label), // datas formatadas
+            datasets
+          },
+          options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              tooltip: { mode: 'index', intersect: false }
+            },
+            scales: { 
+              x: { stacked: true }, 
+              y: { stacked: true, beginAtZero: true } 
+            }
+          }
+        });
+      }
 
-      const datas = Object.keys(dadosAgrupados);
-      if (datas.length === 0) return;
-
-      const categorias = [
-        "Extremamente satisfeito",
-        "Satisfeito",
-        "Nem satisfeito, nem insatisfeito",
-        "Pouco satisfeito",
-        "Completamente insatisfeito"
-      ];
-
-      const datasets = categorias.map((cat, i) => ({
-        label: cat,
-        data: datas.map(d => dadosAgrupados[d][cat] || 0),
-        backgroundColor: ["#0d6efd","#fd7e14","#198754","#20c997","#6f42c1"][i]
-      }));
-
-      graficoAtual = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: datas.map(d => dadosAgrupados[d].label),
-          datasets
-        },
-        options: {
-          responsive: true,
-          scales: { x: { stacked: true }, y: { stacked: true } }
-        }
-      });
-    }
 
     function exportarExcel() {
       const ws = XLSX.utils.json_to_sheet(dadosFiltrados.map(d => ({
