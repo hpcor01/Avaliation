@@ -10,7 +10,8 @@
     body {
       background: #f8f9fa;
       display: flex;
-      height: 100vh;
+      flex-direction: column;
+      min-height: 100vh;
       justify-content: center;
       align-items: center;
     }
@@ -21,6 +22,16 @@
       box-shadow: 0 0 10px #ccc;
       width: 100%;
       max-width: 400px;
+    }
+    footer {
+      width: 100%;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #333;
+      border-top: 1px solid #ddd;
+      margin-top: auto;
     }
   </style>
 </head>
@@ -41,9 +52,17 @@
         <input type="password" id="password" class="form-control" placeholder="Digite sua senha"/>
       </div>
     </div>
-    <div id="msgErro" class="text-danger mb-2" style="display:none;">❌ Usuário ou senha inválidos!</div>
-    <button class="btn btn-primary w-100" onclick="fazerLogin()">🔑 Entrar</button>
+    <div id="msgErro" class="text-danger mb-2" style="display:none;"></div>
+    <button class="btn btn-primary w-100 mb-3" onclick="fazerLogin()">🔑 Entrar</button>
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-link p-0"><i class="bi bi-question"> Esqueceu a senha?</i></button>
+      <button class="btn btn-link p-0">Lembrar dados</button>
+    </div>
   </div>
+
+  <footer>
+    <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | Versão 1.7</p>
+  </footer>
 
   <script>
     const API = 'https://avaliation.onrender.com';
@@ -51,8 +70,15 @@
     async function fazerLogin() {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msgErro');
 
-      if (!username || !password) return;
+      msg.style.display = 'none';
+
+      if (!username || !password) {
+        msg.textContent = "⚠️ Preencha todos os campos!";
+        msg.style.display = 'block';
+        return;
+      }
 
       try {
         const resposta = await fetch(`${API}/login`, {
@@ -65,22 +91,26 @@
           const dados = await resposta.json();
           localStorage.setItem('usuarioLogado', JSON.stringify(dados.user));
           window.location.href = 'dashboard.html';
+        } else if (resposta.status === 401) {
+          msg.textContent = "❌ Usuário ou senha inválidos!";
+          msg.style.display = 'block';
         } else {
-          document.getElementById('msgErro').style.display = 'block';
+          msg.textContent = "⚠️ Servidor indisponível, tente novamente.";
+          msg.style.display = 'block';
         }
       } catch (err) {
         console.error('Erro ao fazer login:', err);
-        document.getElementById('msgErro').style.display = 'block';
+        msg.textContent = "⚠️ Servidor indisponível, tente novamente.";
+        msg.style.display = 'block';
       }
     }
 
-    // Detecta pressionamento de tecla nos campos de entrada
     document.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
-        event.preventDefault(); // Evita comportamento padrão (como envio de formulário)
-        fazerLogin(); // Chama a função de login
+        event.preventDefault();
+        fazerLogin();
       }
-    });  
+    });
   </script>
 </body>
 </html>
