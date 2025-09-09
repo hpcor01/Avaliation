@@ -63,18 +63,21 @@
           <button class="btn btn-sm btn-primary" onclick="carregarRelatorio()"><i class="bi bi-funnel-fill"></i> Filtrar</button>
           <button class="btn btn-sm btn-secondary" onclick="limparFiltro()"><i class="bi bi-funnel"></i> Limpar</button>
         </div>
-        <div>
-          <button class="btn btn-sm btn-success" onclick="exportarExcel()"><i class="bi bi-file-earmark-excel-fill"></i> Excel</button>
-          <button class="btn btn-sm btn-danger" onclick="exportarPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
-        </div>
       </div>
 
       <ul class="nav nav-tabs">
         <li class="nav-item">
           <a class="nav-link active" data-bs-toggle="tab" href="#abaLista">📃 Relatório</a>
+          <div>
+              <button class="btn btn-sm btn-success" onclick="exportarExcel()"><i class="bi bi-file-earmark-excel-fill"></i> Excel</button>
+              <button class="btn btn-sm btn-danger" onclick="exportarPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+          </div>
         </li>
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="tab" href="#abaGrafico">📊 Gráfico</a>
+          <div>
+             <button class="btn btn-sm btn-danger" onclick="exportarPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+          </div>
         </li>
       </ul>
       <div class="tab-content mt-3">
@@ -376,3 +379,4 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
