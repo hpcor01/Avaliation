@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -83,6 +83,10 @@
             <thead><tr><th>👤 Nome</th><th>📝 Avaliação</th><th>🗓️ Data</th></tr></thead>
             <tbody id="tabelaAvaliacao"></tbody>
           </table>
+          <!-- Paginação -->
+          <nav id="paginacaoRelatorio" aria-label="Navegação de página" class="mt-3">
+            <ul class="pagination justify-content-center"></ul>
+          </nav>
         </div>
         <div class="tab-pane fade" id="abaGrafico">
           <div class="d-flex justify-content-end mb-2">
@@ -111,7 +115,7 @@
   <footer class="footer" id="footer">
     <p>
       Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
-      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.7</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.8</a>
     </p>
   </footer>
 
@@ -134,7 +138,7 @@
   </div>
 
   <script>
-    // 🔒 Proteção de sessão no carregamento
+    // 🔒 Proteção de sessão
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!usuario) {
       window.location.href = 'login.html';
@@ -149,6 +153,8 @@
     let dadosAgrupados = {};
     let dadosFiltrados = [];
     let graficoAtual;
+    let paginaAtual = 1;
+    const itensPorPagina = 10;
 
     function mostrarSessao(sessao) {
       document.getElementById('telaInicial').style.display = 'none';
@@ -167,19 +173,17 @@
 
     function carregarRelatorio() {
       fetch(`${API}/avaliacoes`).then(res => res.json()).then(data => {
-        const tbody = document.getElementById('tabelaAvaliacao');
-        tbody.innerHTML = '';
-
-        const inicio = document.getElementById('dataInicio').value;
-        const fim = document.getElementById('dataFim').value;
+        const inicioFiltro = document.getElementById('dataInicio').value;
+        const fimFiltro = document.getElementById('dataFim').value;
 
         dadosFiltrados = data.filter(item => {
           const dt = new Date(item.data);
-          if (inicio && dt < new Date(inicio)) return false;
-          if (fim && dt > new Date(fim)) return false;
+          if (inicioFiltro && dt < new Date(inicioFiltro)) return false;
+          if (fimFiltro && dt > new Date(fimFiltro)) return false;
           return true;
         });
 
+        // Atualiza contagem e agrupamento
         contagemGlobal = { 
           "Extremamente satisfeito":0, 
           "Satisfeito":0, 
@@ -188,25 +192,21 @@
           "Completamente insatisfeito":0 
         };
         dadosAgrupados = {};
-
         dadosFiltrados.forEach(item => {
           const dt = new Date(item.data).toLocaleDateString();
-          tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${dt}</td></tr>`;
-
           contagemGlobal[item.avaliacao] = (contagemGlobal[item.avaliacao] || 0) + 1;
-
-          if (!dadosAgrupados[dt]) {
-            dadosAgrupados[dt] = { 
-              "Extremamente satisfeito":0, 
-              "Satisfeito":0, 
-              "Nem satisfeito, nem insatisfeito":0, 
-              "Pouco satisfeito":0, 
-              "Completamente insatisfeito":0 
-            };
-          }
+          if (!dadosAgrupados[dt]) dadosAgrupados[dt] = { 
+            "Extremamente satisfeito":0, 
+            "Satisfeito":0, 
+            "Nem satisfeito, nem insatisfeito":0, 
+            "Pouco satisfeito":0, 
+            "Completamente insatisfeito":0 
+          };
           dadosAgrupados[dt][item.avaliacao] = (dadosAgrupados[dt][item.avaliacao] || 0) + 1;
         });
 
+        paginaAtual = 1;
+        atualizarTabelaPaginada();
         document.getElementById('loadingMsg').style.display = 'none';
         mostrarGraficoSimples();
       });
@@ -215,7 +215,49 @@
     function limparFiltro() {
       document.getElementById('dataInicio').value = '';
       document.getElementById('dataFim').value = '';
+      paginaAtual = 1;
       carregarRelatorio();
+    }
+
+    // Paginação
+    function atualizarTabelaPaginada() {
+      const tbody = document.getElementById('tabelaAvaliacao');
+      tbody.innerHTML = '';
+
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const itensPagina = dadosFiltrados.slice(inicio, fim);
+
+      itensPagina.forEach(item => {
+        const dt = new Date(item.data).toLocaleDateString();
+        tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${dt}</td></tr>`;
+      });
+
+      atualizarPaginacao();
+    }
+
+    function atualizarPaginacao() {
+      const totalPaginas = Math.ceil(dadosFiltrados.length / itensPorPagina);
+      const ul = document.querySelector('#paginacaoRelatorio ul');
+      ul.innerHTML = '';
+
+      ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a></li>`;
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a></li>`;
+      }
+
+      ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a></li>`;
+    }
+
+    function mudarPagina(pagina) {
+      const totalPaginas = Math.ceil(dadosFiltrados.length / itensPorPagina);
+      if (pagina < 1 || pagina > totalPaginas) return;
+      paginaAtual = pagina;
+      atualizarTabelaPaginada();
     }
 
     function mostrarGraficoSimples() {
@@ -231,9 +273,7 @@
             backgroundColor: ['#0d6efd','#fd7e14','#198754','#20c997','#6f42c1']
           }]
         },
-        options: {
-          plugins: { legend: { display: false } }
-        }
+        options: { plugins: { legend: { display: false } } }
       });
     }
 
@@ -254,11 +294,7 @@
             { label: "Completamente insatisfeito", data: datas.map(d => dadosAgrupados[d]["Completamente insatisfeito"]||0), backgroundColor: "#6f42c1" }
           ]
         },
-        options: {
-          responsive: true,
-          plugins: { legend: { position: 'bottom' } },
-          scales: { x: { stacked: true }, y: { stacked: true } }
-        }
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true } } }
       });
     }
 
@@ -340,4 +376,3 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
