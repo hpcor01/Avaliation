@@ -1,5 +1,10 @@
 # 📜 Changelog - Dashboard
 
+## Versão [1.8] - 09/09/2025
+- Adicionada **paginação** na lista de relatórios (10 itens por página).
+- Atualização do rodapé para versão 1.8.
+- Ajustes menores de layout e compatibilidade com filtros de data.
+
 ## [1.7] - 2025-09-07
 ### Adicionado
 - Rodapé agora exibe a **versão como link** → abre modal carregando `CHANGELOG.md`.
