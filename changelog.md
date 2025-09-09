@@ -5,6 +5,8 @@
 - Atualização do rodapé para versão 1.8.
 - Ajustes menores de layout e compatibilidade com filtros de data.
 
+---
+
 ## [1.7] - 2025-09-07
 ### Adicionado
 - Rodapé agora exibe a **versão como link** → abre modal carregando `CHANGELOG.md`.
