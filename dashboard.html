@@ -14,7 +14,7 @@
     .navbar-nav .nav-link { color: white !important; }
     #loadingMsg { display: none; font-weight: bold; text-align: center; margin: 20px 0; }
     footer {
-        position: relative; 
+        position: relative;
         bottom: 0;
         left: 0;
         width: 100%;
@@ -109,11 +109,13 @@
     </div>
   </div>
   <footer class="footer" id="footer">
-      <p>Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
-        <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.7</a>
-      </p>
+    <p>
+      Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.7</a>
+    </p>
   </footer>
-    <!-- Modal Changelog -->
+
+  <!-- Modal Changelog -->
   <div class="modal fade" id="modalChangelog" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
@@ -132,18 +134,21 @@
   </div>
 
   <script>
+    // 🔒 Proteção de sessão no carregamento
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!usuario) {
       window.location.href = 'login.html';
+    } else {
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('saudacao').innerHTML = `👋 Olá, <b>${usuario.nome}</b>`;
+      });
     }
-    
+
     const API = 'https://avaliation.onrender.com';
     let contagemGlobal = {};
     let dadosAgrupados = {};
     let dadosFiltrados = [];
     let graficoAtual;
-
-    document.getElementById("ano")?.textContent = new Date().getFullYear();
 
     function mostrarSessao(sessao) {
       document.getElementById('telaInicial').style.display = 'none';
@@ -302,12 +307,8 @@
       });
     }
 
-    // Proteção da sessão
-    window.onload = () => {
-      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-      if (!usuario) return logout();
-      document.getElementById('saudacao').innerHTML = `👋 Olá, <b>${usuario.nome}</b>`;
-
+    // Auto logout por inatividade
+    document.addEventListener("DOMContentLoaded", () => {
       let logoutTimer;
       function resetInactivityTimer() {
         clearTimeout(logoutTimer);
@@ -318,14 +319,15 @@
       }
       ['mousemove', 'keypress', 'click'].forEach(evt => document.addEventListener(evt, resetInactivityTimer));
       resetInactivityTimer();
-      window.addEventListener("beforeunload", () => localStorage.removeItem('usuarioLogado'));
-    }
-  </script>
+    });
 
-  <script>
+    // 🔗 Carregar changelog ao abrir modal
     document.getElementById("modalChangelog").addEventListener("show.bs.modal", () => {
-      fetch("changelog.md")
-        .then(res => res.text())
+      fetch("CHANGELOG.md")
+        .then(res => {
+          if (!res.ok) throw new Error("Arquivo não encontrado");
+          return res.text();
+        })
         .then(txt => {
           document.getElementById("conteudoChangelog").textContent = txt;
         })
