@@ -140,7 +140,7 @@
 
     // 🔗 Carregar changelog ao abrir modal
     document.getElementById("modalChangelog").addEventListener("show.bs.modal", () => {
-      fetch("CHANGELOG.md")
+      fetch("changelog.md")
         .then(res => {
           if (!res.ok) throw new Error("Arquivo não encontrado");
           return res.text();
