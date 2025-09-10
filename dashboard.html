@@ -1,29 +1,25 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Painel Administrativo</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
   <style>
     .navbar-nav .nav-link { color: white !important; }
-    #loadingMsg { display: none; font-weight: bold; text-align: center; margin: 20px 0; }
+    #loadingMsg { display:none; font-weight: bold; text-align:center; margin: 20px 0; }
     footer {
-        position: relative;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        background-color: #f4f4f4;
-        padding: 10px 0;
-        font-size: 14px;
-        color: #333;
-        border-top: 1px solid #ddd;
+      position: relative;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #333;
+      border-top: 1px solid #ddd;
     }
   </style>
 </head>
@@ -32,7 +28,7 @@
     <div class="container-fluid">
       <span class="navbar-brand"><i class="bi bi-gear-fill"></i> Painel do Sistema</span>
       <div class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <ul class="navbar-nav me-auto">
           <li class="nav-item">
             <a class="nav-link" href="#" onclick="mostrarSessao('relatorio')"><i class="bi bi-file-earmark-bar-graph-fill"></i> Relatório</a>
           </li>
@@ -40,7 +36,7 @@
             <a class="nav-link" href="#" onclick="mostrarSessao('usuarios')"><i class="bi bi-person-fill"></i> Usuários</a>
           </li>
         </ul>
-        <span class="navbar-text me-3 text-white" id="saudacao"><i class="bi bi-person-circle"></i> Olá</span>
+        <span class="navbar-text me-3 text-white" id="saudacao">Olá</span>
         <button class="btn btn-outline-danger btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
       </div>
     </div>
@@ -54,35 +50,50 @@
 
     <div id="loadingMsg">⌛ Carregando dados...</div>
 
-    <!-- RELATÓRIO -->
+    <!-- ================= RELATÓRIO ================= -->
     <div id="secaoRelatorio" style="display:none">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <label>📅 De: <input type="date" id="dataInicio"></label>
-          <label>📅 Até: <input type="date" id="dataFim"></label>
-          <button class="btn btn-sm btn-primary" onclick="carregarRelatorio()"><i class="bi bi-funnel-fill"></i> Filtrar</button>
-          <button class="btn btn-sm btn-secondary" onclick="limparFiltro()"><i class="bi bi-funnel"></i> Limpar</button>
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <label>Data início:</label>
+          <input type="date" id="dataInicio" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label>Data fim:</label>
+          <input type="date" id="dataFim" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label>Tipo de Avaliação:</label>
+          <select id="tipoAvaliacao" class="form-control">
+            <option value="">Todos</option>
+            <option value="Muito bom">Muito bom</option>
+            <option value="Bom">Bom</option>
+            <option value="Regular">Regular</option>
+            <option value="Ruim">Ruim</option>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary me-2" onclick="filtrarDados()"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+          <button class="btn btn-secondary me-2" onclick="limparFiltros()"><i class="bi bi-funnel"></i> Limpar</button>
         </div>
       </div>
 
       <ul class="nav nav-tabs">
         <li class="nav-item">
           <a class="nav-link active" data-bs-toggle="tab" href="#abaLista">📃 Relatório</a>
-          <div>
-              <button class="btn btn-sm btn-success" onclick="exportarExcel()"><i class="bi bi-file-earmark-excel-fill"></i> Excel</button>
-              <button class="btn btn-sm btn-danger" onclick="exportarPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
-          </div>
         </li>
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="tab" href="#abaGrafico">📊 Gráfico</a>
-          <div>
-             <button class="btn btn-sm btn-danger" onclick="exportarPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
-          </div>
         </li>
       </ul>
+
       <div class="tab-content mt-3">
+        <!-- LISTA -->
         <div class="tab-pane fade show active" id="abaLista">
-          <table class="table table-bordered mt-3">
+          <div class="d-flex justify-content-end mb-2">
+            <button class="btn btn-success btn-sm me-2" onclick="exportarParaExcel()"><i class="bi bi-file-earmark-excel-fill"></i> Excel</button>
+            <button class="btn btn-danger btn-sm" onclick="exportarRelatorioPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+          </div>
+          <table class="table table-bordered">
             <thead><tr><th>👤 Nome</th><th>📝 Avaliação</th><th>🗓️ Data</th></tr></thead>
             <tbody id="tabelaAvaliacao"></tbody>
           </table>
@@ -91,71 +102,45 @@
             <ul class="pagination justify-content-center"></ul>
           </nav>
         </div>
+        <!-- GRÁFICO -->
         <div class="tab-pane fade" id="abaGrafico">
-          <div class="d-flex justify-content-end mb-2">
-            <button class="btn btn-sm btn-outline-primary me-2" onclick="mostrarGraficoSimples()">📊 Visão simples</button>
-            <button class="btn btn-sm btn-outline-success" onclick="mostrarGraficoComparativo()">📊 Visão comparativa</button>
+          <canvas id="graficoAvaliacao" height="100"></canvas>
+          <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-outline-primary btn-sm me-2" onclick="mostrarGraficoSimples()">Visão simples</button>
+            <button class="btn btn-outline-success btn-sm me-2" onclick="mostrarGraficoComparativo()">Visão comparativa</button>
+            <button class="btn btn-danger btn-sm" onclick="exportarGraficoPDF()"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
           </div>
-          <canvas id="graficoAvaliacao" height="120"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- USUÁRIOS -->
+    <!-- ================= USUÁRIOS ================= -->
     <div id="secaoUsuarios" style="display:none">
-      <div class="d-flex justify-content-between mb-3">
-        <h5>👤 Usuários ativos</h5>
-        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">➕ Novo Usuário</button>
-      </div>
+      <h5>👤 Usuários ativos</h5>
       <table class="table table-bordered">
-        <thead class="table-light">
-          <tr><th>📝 Nome</th><th>👤 Usuário</th><th>📧 Email</th><th>🪛 Ações</th></tr>
-        </thead>
+        <thead><tr><th>Nome</th><th>Usuário</th><th>Email</</tr></thead>
         <tbody id="listaUsuarios"></tbody>
       </table>
     </div>
   </div>
+
   <footer class="footer" id="footer">
     <p>
       Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
-      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.8</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.7</a>
     </p>
   </footer>
 
-  <!-- Modal Changelog -->
-  <div class="modal fade" id="modalChangelog" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">📜 Changelog</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <pre id="conteudoChangelog" class="p-3 bg-light border rounded" style="white-space: pre-wrap;"></pre>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    // 🔒 Proteção de sessão
-    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!usuario) {
-      window.location.href = 'login.html';
-    } else {
-      document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById('saudacao').innerHTML = `👋 Olá, <b>${usuario.nome}</b>`;
-      });
-    }
-
     const API = 'https://avaliation.onrender.com';
-    let contagemGlobal = {};
-    let dadosAgrupados = {};
+    let dadosOriginais = [];
     let dadosFiltrados = [];
-    let graficoAtual;
+    let chart;
     let paginaAtual = 1;
     const itensPorPagina = 10;
 
@@ -165,7 +150,7 @@
       document.getElementById('secaoUsuarios').style.display = sessao === 'usuarios' ? 'block' : 'none';
       document.getElementById('loadingMsg').style.display = 'block';
 
-      if (sessao === 'relatorio') carregarRelatorio();
+      if (sessao === 'relatorio') carregarAvaliacoes();
       if (sessao === 'usuarios') carregarUsuarios();
     }
 
@@ -174,68 +159,27 @@
       window.location.href = 'login.html';
     }
 
-    function carregarRelatorio() {
-      fetch(`${API}/avaliacoes`).then(res => res.json()).then(data => {
-        const inicioFiltro = document.getElementById('dataInicio').value;
-        const fimFiltro = document.getElementById('dataFim').value;
-
-        dadosFiltrados = data.filter(item => {
-          const dt = new Date(item.data);
-          if (inicioFiltro && dt < new Date(inicioFiltro)) return false;
-          if (fimFiltro && dt > new Date(fimFiltro)) return false;
-          return true;
-        });
-
-        // Atualiza contagem e agrupamento
-        contagemGlobal = { 
-          "Extremamente satisfeito":0, 
-          "Satisfeito":0, 
-          "Nem satisfeito, nem insatisfeito":0, 
-          "Pouco satisfeito":0, 
-          "Completamente insatisfeito":0 
-        };
-        dadosAgrupados = {};
-        dadosFiltrados.forEach(item => {
-          const dt = new Date(item.data).toLocaleDateString();
-          contagemGlobal[item.avaliacao] = (contagemGlobal[item.avaliacao] || 0) + 1;
-          if (!dadosAgrupados[dt]) dadosAgrupados[dt] = { 
-            "Extremamente satisfeito":0, 
-            "Satisfeito":0, 
-            "Nem satisfeito, nem insatisfeito":0, 
-            "Pouco satisfeito":0, 
-            "Completamente insatisfeito":0 
-          };
-          dadosAgrupados[dt][item.avaliacao] = (dadosAgrupados[dt][item.avaliacao] || 0) + 1;
-        });
-
-        paginaAtual = 1;
-        atualizarTabelaPaginada();
-        document.getElementById('loadingMsg').style.display = 'none';
-        mostrarGraficoSimples();
-      });
-    }
-
-    function limparFiltro() {
-      document.getElementById('dataInicio').value = '';
-      document.getElementById('dataFim').value = '';
+    async function carregarAvaliacoes() {
+      const res = await fetch(`${API}/avaliacoes`);
+      const data = await res.json();
+      dadosOriginais = data;
+      dadosFiltrados = data;
       paginaAtual = 1;
-      carregarRelatorio();
+      atualizarTabelaPaginada();
+      mostrarGraficoSimples();
+      document.getElementById('loadingMsg').style.display = 'none';
     }
 
-    // Paginação
+    // ====== PAGINAÇÃO ======
     function atualizarTabelaPaginada() {
-      const tbody = document.getElementById('tabelaAvaliacao');
-      tbody.innerHTML = '';
-
+      const corpo = document.getElementById('tabelaAvaliacao');
+      corpo.innerHTML = '';
       const inicio = (paginaAtual - 1) * itensPorPagina;
       const fim = inicio + itensPorPagina;
-      const itensPagina = dadosFiltrados.slice(inicio, fim);
-
-      itensPagina.forEach(item => {
-        const dt = new Date(item.data).toLocaleDateString();
-        tbody.innerHTML += `<tr><td>${item.nome}</td><td>${item.avaliacao}</td><td>${dt}</td></tr>`;
+      const pagina = dadosFiltrados.slice(inicio, fim);
+      pagina.forEach(item => {
+        corpo.innerHTML += `<tr><td>${item.nome || '-'}</td><td>${item.avaliacao}</td><td>${new Date(item.data).toLocaleDateString()}</td></tr>`;
       });
-
       atualizarPaginacao();
     }
 
@@ -243,140 +187,154 @@
       const totalPaginas = Math.ceil(dadosFiltrados.length / itensPorPagina);
       const ul = document.querySelector('#paginacaoRelatorio ul');
       ul.innerHTML = '';
-
-      ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a></li>`;
-
+      ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a></li>`;
       for (let i = 1; i <= totalPaginas; i++) {
-        ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
-          <a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a></li>`;
+        ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}"><a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a></li>`;
       }
-
-      ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a></li>`;
+      ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}"><a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a></li>`;
     }
 
-    function mudarPagina(pagina) {
+    function mudarPagina(p) {
       const totalPaginas = Math.ceil(dadosFiltrados.length / itensPorPagina);
-      if (pagina < 1 || pagina > totalPaginas) return;
-      paginaAtual = pagina;
+      if (p < 1 || p > totalPaginas) return;
+      paginaAtual = p;
       atualizarTabelaPaginada();
     }
 
-    function mostrarGraficoSimples() {
-      if (graficoAtual) graficoAtual.destroy();
-      const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
-      graficoAtual = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(contagemGlobal),
-          datasets: [{
-            label: 'Quantidade',
-            data: Object.values(contagemGlobal),
-            backgroundColor: ['#0d6efd','#fd7e14','#198754','#20c997','#6f42c1']
-          }]
-        },
-        options: { plugins: { legend: { display: false } } }
+    // ====== FILTROS ======
+    function filtrarDados() {
+      const inicio = document.getElementById('dataInicio').value;
+      const fim = document.getElementById('dataFim').value;
+      const tipo = document.getElementById('tipoAvaliacao').value;
+
+      const inicioDate = inicio ? new Date(inicio + 'T00:00:00') : null;
+      const fimDate = fim ? new Date(fim + 'T23:59:59') : null;
+
+      dadosFiltrados = dadosOriginais.filter(item => {
+        const data = new Date(item.data);
+        const condData = (!inicioDate || data >= inicioDate) && (!fimDate || data <= fimDate);
+        const condTipo = !tipo || item.avaliacao === tipo;
+        return condData && condTipo;
       });
+
+      paginaAtual = 1;
+      atualizarTabelaPaginada();
+      mostrarGraficoSimples();
+    }
+
+    function limparFiltros() {
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
+      document.getElementById('tipoAvaliacao').value = '';
+      dadosFiltrados = dadosOriginais;
+      paginaAtual = 1;
+      atualizarTabelaPaginada();
+      mostrarGraficoSimples();
+    }
+
+    // ====== GRÁFICOS ======
+    function mostrarGraficoSimples() {
+      const contagem = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+      dadosFiltrados.forEach(d => contagem[d.avaliacao]++);
+      desenharGrafico(Object.keys(contagem), [Object.values(contagem)], ['Quantidade']);
     }
 
     function mostrarGraficoComparativo() {
-      if (graficoAtual) graficoAtual.destroy();
-      const ctx = document.getElementById('graficoAvaliacao').getContext('2d');
-      const datas = Object.keys(dadosAgrupados);
-
-      graficoAtual = new Chart(ctx, {
+      const grupos = {};
+      dadosFiltrados.forEach(d => {
+        const dt = new Date(d.data).toLocaleDateString();
+        if (!grupos[dt]) grupos[dt] = { 'Muito bom': 0, 'Bom': 0, 'Regular': 0, 'Ruim': 0 };
+        grupos[dt][d.avaliacao]++;
+      });
+      const labels = Object.keys(grupos);
+      const datasets = Object.keys(grupos[labels[0]]).map((tipo, i) => ({
+        label: tipo,
+        data: labels.map(l => grupos[l][tipo]),
+        backgroundColor: ['#28a745','#8bc34a','#ffc107','#dc3545'][i]
+      }));
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('graficoAvaliacao').getContext('2d'), {
         type: 'bar',
-        data: {
-          labels: datas,
-          datasets: [
-            { label: "Extremamente satisfeito", data: datas.map(d => dadosAgrupados[d]["Extremamente satisfeito"]||0), backgroundColor: "#0d6efd" },
-            { label: "Satisfeito", data: datas.map(d => dadosAgrupados[d]["Satisfeito"]||0), backgroundColor: "#fd7e14" },
-            { label: "Nem satisfeito, nem insatisfeito", data: datas.map(d => dadosAgrupados[d]["Nem satisfeito, nem insatisfeito"]||0), backgroundColor: "#198754" },
-            { label: "Pouco satisfeito", data: datas.map(d => dadosAgrupados[d]["Pouco satisfeito"]||0), backgroundColor: "#20c997" },
-            { label: "Completamente insatisfeito", data: datas.map(d => dadosAgrupados[d]["Completamente insatisfeito"]||0), backgroundColor: "#6f42c1" }
-          ]
-        },
+        data: { labels, datasets },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true } } }
       });
     }
 
-    function exportarExcel() {
-      const ws = XLSX.utils.json_to_sheet(dadosFiltrados.map(d => ({
-        Nome: d.nome, Avaliação: d.avaliacao, Data: new Date(d.data).toLocaleDateString()
-      })));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-      XLSX.writeFile(wb, "relatorio.xlsx");
-    }
-
-    function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      if (document.querySelector("#abaLista").classList.contains("active")) {
-        doc.setFontSize(14);
-        doc.text("📋 Relatório de Avaliações", 14, 15);
-        doc.autoTable({
-          startY: 25,
-          head: [['Nome', 'Avaliação', 'Data']],
-          body: dadosFiltrados.map(d => [d.nome, d.avaliacao, new Date(d.data).toLocaleDateString()]),
-        });
-      } else {
-        doc.text("📊 Gráfico de Avaliações", 14, 15);
-        const canvas = document.getElementById('graficoAvaliacao');
-        const imgData = canvas.toDataURL('image/png');
-        doc.addImage(imgData, 'PNG', 15, 25, 180, 100);
-      }
-
-      doc.save("relatorio.pdf");
-    }
-
-    function carregarUsuarios() {
-      fetch(`${API}/usuarios`).then(res => res.json()).then(data => {
-        const lista = document.getElementById('listaUsuarios');
-        lista.innerHTML = '';
-        data.forEach(u => {
-          const linha = `<tr><td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
-            <td><button class='btn btn-sm btn-primary'>Editar</button>
-            <button class='btn btn-sm btn-danger'>Desativar</button></td></tr>`;
-          lista.innerHTML += linha;
-        });
-        document.getElementById('loadingMsg').style.display = 'none';
+    function desenharGrafico(labels, dataArr, legends) {
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('graficoAvaliacao').getContext('2d'), {
+        type: 'bar',
+        data: { labels, datasets: legends.map((l,i)=>({ label:l, data:dataArr[i], backgroundColor: ['#28a745','#8bc34a','#ffc107','#dc3545'][i] })) },
+        options: { plugins: { legend: { display: false } } }
       });
     }
 
-    // Auto logout por inatividade
-    document.addEventListener("DOMContentLoaded", () => {
+    // ====== EXPORTAÇÕES ======
+    function exportarParaExcel() {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.table_to_sheet(document.querySelector("#abaLista table"));
+      XLSX.utils.book_append_sheet(wb, ws, "Avaliações");
+      XLSX.writeFile(wb, "relatorio-avaliacoes.xlsx");
+    }
+
+    async function exportarRelatorioPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("📊 Relatório de Avaliações", 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Emitido em: ${new Date().toLocaleString("pt-BR")}`, 14, 28);
+      const head = [["Nome", "Avaliação", "Data"]];
+      const body = [];
+      document.querySelectorAll("#tabelaAvaliacao tr").forEach(tr => {
+        const cols = tr.querySelectorAll("td");
+        if (cols.length) body.push([cols[0].innerText, cols[1].innerText, cols[2].innerText]);
+      });
+      doc.autoTable({ startY: 35, head, body, theme: "grid" });
+      doc.text(`Total de registros: ${body.length}`, 14, doc.lastAutoTable.finalY + 10);
+      doc.save("relatorio-avaliacoes.pdf");
+    }
+
+    async function exportarGraficoPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("📊 Gráfico de Avaliações", 14, 20);
+      doc.text(`Emitido em: ${new Date().toLocaleString("pt-BR")}`, 14, 28);
+      const canvas = document.getElementById("graficoAvaliacao");
+      const img = canvas.toDataURL("image/png", 1.0);
+      doc.addImage(img, "PNG", 15, 40, 180, 100);
+      doc.save("grafico-avaliacoes.pdf");
+    }
+
+    async function carregarUsuarios() {
+      const res = await fetch(`${API}/usuarios`);
+      const data = await res.json();
+      const lista = document.getElementById('listaUsuarios');
+      lista.innerHTML = '';
+      data.forEach(u => {
+        lista.innerHTML += `<tr><td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
+          <td><button class='btn btn-sm btn-primary'>Editar</button>
+          <button class='btn btn-sm btn-danger'>Desativar</button></td></tr>`;
+      });
+      document.getElementById('loadingMsg').style.display = 'none';
+    }
+
+    // Proteção da sessão
+    window.onload = () => {
+      const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+      if (!usuario) return window.location.href = 'login.html';
+      document.getElementById('saudacao').innerText = `👋 Olá, ${usuario.nome}`;
       let logoutTimer;
       function resetInactivityTimer() {
         clearTimeout(logoutTimer);
-        logoutTimer = setTimeout(() => {
-          alert('Sessão expirada por inatividade.');
-          logout();
-        }, 15 * 60 * 1000);
+        logoutTimer = setTimeout(() => { alert('Sessão expirada.'); logout(); }, 15*60*1000);
       }
-      ['mousemove', 'keypress', 'click'].forEach(evt => document.addEventListener(evt, resetInactivityTimer));
+      ["mousemove","keypress","click"].forEach(evt => document.addEventListener(evt, resetInactivityTimer));
       resetInactivityTimer();
-    });
-
-    // 🔗 Carregar changelog ao abrir modal
-    document.getElementById("modalChangelog").addEventListener("show.bs.modal", () => {
-      fetch("changelog.md")
-        .then(res => {
-          if (!res.ok) throw new Error("Arquivo não encontrado");
-          return res.text();
-        })
-        .then(txt => {
-          document.getElementById("conteudoChangelog").textContent = txt;
-        })
-        .catch(() => {
-          document.getElementById("conteudoChangelog").textContent = "⚠️ Não foi possível carregar o changelog.";
-        });
-    });
+      window.addEventListener("beforeunload", () => localStorage.removeItem('usuarioLogado'));
+    }
   </script>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
