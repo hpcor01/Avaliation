@@ -1,22 +1,12 @@
 # 📜 Changelog - Dashboard
 
-## [1.8] - 09/09/2025
-- Adicionada **paginação** na lista de relatórios (10 itens por página).
-- Atualização do rodapé para versão 1.8.
-- Ajustes menores de layout e compatibilidade com filtros de data.
-
----
-
-## [1.7] - 2025-09-07
-### Adicionado
-- Rodapé agora exibe a **versão como link** → abre modal carregando `CHANGELOG.md`.
-- Página de **login**: incluído rodapé, botão visual de **"Esqueceu a senha?"** e **"Lembrar dados"**.
-- Tratamento melhorado no login: exibe aviso caso o **servidor esteja indisponível**.
-
-### Corrigido
-- Gráfico **simples** do relatório agora exibe corretamente todas as categorias.
-- Gráfico **comparativo** corrigido: exibe dados empilhados por data, com legenda ajustada.
-- Rodapé da dashboard atualizado para versão **1.7**.
+## Versão 1.7
+- Inclusão do modal de changelog
+- Proteção de sessão com auto logout por inatividade
+- Exportação em Excel e PDF para relatórios
+- Exportação em PDF para gráficos
+- Reintroduzida a **paginação** na lista de relatórios (10 itens por página)
+- Ajustes no **gráfico comparativo** para melhor visualização dos dados
 
 ---
 
