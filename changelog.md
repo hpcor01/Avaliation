@@ -1,12 +1,20 @@
 # 📜 Changelog - Dashboard
 
+## Versão 1.8
+- Criada aba **Usuários inativos**.
+- Implementada função de **edição de usuários**.
+- Adicionada opção de **desativar** usuários ativos.
+- Adicionada opção de **reativar** usuários inativos.
+
+---
+
 ## Versão 1.7
-- Inclusão do modal de changelog
-- Proteção de sessão com auto logout por inatividade
-- Exportação em Excel e PDF para relatórios
-- Exportação em PDF para gráficos
-- Reintroduzida a **paginação** na lista de relatórios (10 itens por página)
-- Ajustes no **gráfico comparativo** para melhor visualização dos dados
+- Inclusão do modal de changelog.
+- Proteção de sessão com auto logout por inatividade.
+- Exportação em Excel e PDF para relatórios.
+- Exportação em PDF para gráficos.
+- Reintroduzida a **paginação** na lista de relatórios (10 itens por página).
+- Ajustes no **gráfico comparativo** para melhor visualização dos dados.
 
 ---
 
