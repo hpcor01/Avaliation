@@ -114,22 +114,77 @@
       </div>
     </div>
 
-    <!-- ================= USUÁRIOS ================= -->
-    <div id="secaoUsuarios" style="display:none">
-      <h5>👤 Usuários ativos</h5>
-      <table class="table table-bordered">
-        <thead><tr><th>Nome</th><th>Usuário</th><th>Email</</tr></thead>
-        <tbody id="listaUsuarios"></tbody>
-      </table>
+      <!-- ================= USUÁRIOS ================= -->
+  <div id="secaoUsuarios" style="display:none">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#usuariosAtivos">👤 Usuários Ativos</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#usuariosInativos">🚫 Usuários Inativos</a>
+      </li>
+    </ul>
+  
+    <div class="tab-content mt-3">
+      <!-- Ativos -->
+      <div class="tab-pane fade show active" id="usuariosAtivos">
+        <div class="d-flex justify-content-between mb-2">
+          <h5>👤 Usuários ativos</h5>
+          <button class="btn btn-success btn-sm">➕ Novo Usuário</button>
+        </div>
+        <table class="table table-bordered">
+          <thead><tr><th>Nome</th><th>Usuário</th><th>Email</th><th>Ações</th></tr></thead>
+          <tbody id="listaUsuariosAtivos"></tbody>
+        </table>
+      </div>
+  
+      <!-- Inativos -->
+      <div class="tab-pane fade" id="usuariosInativos">
+        <h5>🚫 Usuários inativos</h5>
+        <table class="table table-bordered">
+          <thead><tr><th>Nome</th><th>Usuário</th><th>Email</th><th>Ações</th></tr></thead>
+          <tbody id="listaUsuariosInativos"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <footer class="footer" id="footer">
     <p>
       Desenvolvido por <a href="mailto:hugop.cordeiro@yahoo.com">Hugo Portelinha Cordeiro</a> | 
-      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.7</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog">Versão 1.8</a>
     </p>
   </footer>
+  
+      <!-- Modal Editar Usuário -->
+  <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">✏️ Editar Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEditarUsuario">
+            <input type="hidden" id="editarId">
+            <div class="mb-3">
+              <label>Nome:</label>
+              <input type="text" id="editarNome" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label>Usuário:</label>
+              <input type="text" id="editarUsername" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label>Email:</label>
+              <input type="email" id="editarEmail" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ======Modal Changelog====== -->
   <div class="modal fade" id="modalChangelog" tabindex="-1" aria-hidden="true">
@@ -325,18 +380,83 @@
       doc.save("grafico-avaliacoes.pdf");
     }
 
+    // ====== USUÁRIOS ======
     async function carregarUsuarios() {
-      const res = await fetch(`${API}/usuarios`);
+      await carregarUsuariosAtivos();
+      await carregarUsuariosInativos();
+    }
+    
+    async function carregarUsuariosAtivos() {
+      const res = await fetch(`${API}/usuarios?status=ativo`);
       const data = await res.json();
-      const lista = document.getElementById('listaUsuarios');
+      const lista = document.getElementById('listaUsuariosAtivos');
       lista.innerHTML = '';
       data.forEach(u => {
-        lista.innerHTML += `<tr><td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
-          <td><button class='btn btn-sm btn-primary'>Editar</button>
-          <button class='btn btn-sm btn-danger'>Desativar</button></td></tr>`;
+        lista.innerHTML += `<tr>
+          <td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="abrirModalEditar(${u.id}, '${u.nome}', '${u.username}', '${u.email}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="desativarUsuario(${u.id})">Desativar</button>
+          </td>
+        </tr>`;
       });
       document.getElementById('loadingMsg').style.display = 'none';
     }
+
+  async function carregarUsuariosInativos() {
+    const res = await fetch(`${API}/usuarios?status=inativo`);
+    const data = await res.json();
+    const lista = document.getElementById('listaUsuariosInativos');
+    lista.innerHTML = '';
+    data.forEach(u => {
+      lista.innerHTML += `<tr>
+        <td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
+        <td>
+          <button class="btn btn-sm btn-success" onclick="reativarUsuario(${u.id})">Reativar</button>
+        </td>
+      </tr>`;
+    });
+  }
+  
+  // Abrir modal edição
+  function abrirModalEditar(id, nome, username, email) {
+    document.getElementById('editarId').value = id;
+    document.getElementById('editarNome').value = nome;
+    document.getElementById('editarUsername').value = username;
+    document.getElementById('editarEmail').value = email;
+    new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+  }
+  
+  // Salvar edição
+  document.getElementById('formEditarUsuario').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editarId').value;
+    const payload = {
+      nome: document.getElementById('editarNome').value,
+      username: document.getElementById('editarUsername').value,
+      email: document.getElementById('editarEmail').value
+    };
+    await fetch(`${API}/usuarios/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
+    carregarUsuarios();
+  });
+  
+  // Desativar usuário
+  async function desativarUsuario(id) {
+    if (!confirm("Deseja realmente desativar este usuário?")) return;
+    await fetch(`${API}/usuarios/${id}/desativar`, { method: 'PATCH' });
+    carregarUsuarios();
+  }
+  
+  // Reativar usuário
+  async function reativarUsuario(id) {
+    await fetch(`${API}/usuarios/${id}/reativar`, { method: 'PATCH' });
+    carregarUsuarios();
+  }
 
     // Carregar changelog ao abrir modal
       document.getElementById("modalChangelog").addEventListener("show.bs.modal", () => {
@@ -371,5 +491,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
