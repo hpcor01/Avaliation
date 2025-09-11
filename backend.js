@@ -73,7 +73,7 @@ app.get('/', (req, res) => {
   res.send('API de Avaliações está rodando.');
 });
 
-// Lista usuários (apenas ativos)
+// Lista usuários ativos
 app.get('/usuarios', async (_req, res) => {
   try {
     const db = client.db(dbName);          
@@ -94,6 +94,30 @@ app.get('/usuarios', async (_req, res) => {
   } catch (err) {
     console.error('Erro ao listar usuários:', err);
     res.status(500).json({ error: 'Erro ao listar usuários.' });
+  }
+});
+
+// Lista usuários inativos
+app.get('/usuarios/inativos', async (_req, res) => {
+  try {
+    const db = client.db(dbName);
+    const col = db.collection('colLogin');
+
+    const docs = await col.find({ ativo: false })
+      .project({ 'user.password': 0 })
+      .toArray();
+
+    const users = docs.map(d => ({
+      id: d._id,
+      username: d.user.username,
+      nome: d.user.nome,
+      email: d.user.email
+    }));
+
+    res.json(users);
+  } catch (err) {
+    console.error('Erro ao listar inativos:', err);
+    res.status(500).json({ error: 'Erro ao listar inativos.' });
   }
 });
 
@@ -126,11 +150,11 @@ app.post('/usuarios', async (req, res) => {
 });
 
 
-// Desativar
+// Desativar usuário (corrigido)
 app.patch('/usuarios/:id/desativar', async (req, res) => {
   try {
     const db = client.db(dbName);
-    await db.collection(collectionLogin).updateOne(
+    await db.collection('colLogin').updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: { ativo: false, desativadoEm: new Date() } }
     );
@@ -138,6 +162,46 @@ app.patch('/usuarios/:id/desativar', async (req, res) => {
   } catch (err) {
     console.error('Erro ao desativar usuário:', err);
     res.status(500).json({ error: 'Erro ao desativar usuário.' });
+  }
+});
+
+// Reativar usuário
+app.patch('/usuarios/:id/reativar', async (req, res) => {
+  try {
+    const db = client.db(dbName);
+    await db.collection('colLogin').updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { ativo: true }, $unset: { desativadoEm: "" } }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao reativar usuário:', err);
+    res.status(500).json({ error: 'Erro ao reativar usuário.' });
+  }
+});
+
+// Editar usuário
+app.put('/usuarios/:id', async (req, res) => {
+  try {
+    const { nome, username, email } = req.body;
+    if (!nome || !username || !email) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando.' });
+    }
+
+    const db = client.db(dbName);
+    const result = await db.collection('colLogin').updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { 'user.nome': nome, 'user.username': username, 'user.email': email } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao editar usuário:', err);
+    res.status(500).json({ error: 'Erro ao editar usuário.' });
   }
 });
 
