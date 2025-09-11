@@ -131,6 +131,24 @@
     </p>
   </footer>
 
+  <!-- ======Modal Changelog====== -->
+  <div class="modal fade" id="modalChangelog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">📜 Changelog</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="conteudoChangelog" class="p-3 bg-light border rounded" style="white-space: pre-wrap;"></pre>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -320,6 +338,21 @@
       document.getElementById('loadingMsg').style.display = 'none';
     }
 
+    // Carregar changelog ao abrir modal
+      document.getElementById("modalChangelog").addEventListener("show.bs.modal", () => {
+        fetch("changelog.md")
+          .then(res => {
+            if (!res.ok) throw new Error("Arquivo não encontrado");
+            return res.text();
+          })
+          .then(txt => {
+            document.getElementById("conteudoChangelog").textContent = txt;
+          })
+          .catch(() => {
+            document.getElementById("conteudoChangelog").textContent = "⚠️ Não foi possível carregar o changelog.";
+          });
+      });
+
     // Proteção da sessão
     window.onload = () => {
       const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -338,3 +371,4 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
