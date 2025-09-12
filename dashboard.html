@@ -130,7 +130,7 @@
       <div class="tab-pane fade show active" id="usuariosAtivos">
         <div class="d-flex justify-content-between mb-2">
           <h5>👤 Usuários ativos</h5>
-          <button class="btn btn-success btn-sm" onclick="abrirModalNovoUsuario()">➕ Novo Usuário</button>
+          <button class="btn btn-success btn-sm" onclick="abrirModalNovoUsuario()"><i class="bi bi-person-plus-fill"></i> Novo Usuário</button>
         </div>
         <table class="table table-bordered">
           <thead><tr><th>Nome</th><th>Usuário</th><th>Email</th><th>Ações</th></tr></thead>
@@ -179,7 +179,7 @@
               <label>Email:</label>
               <input type="email" id="editarEmail" class="form-control" required>
             </div>
-            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2"></i> Salvar alterações</button>
           </form>
         </div>
       </div>
@@ -428,8 +428,8 @@
         lista.innerHTML += `<tr>
           <td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
           <td>
-            <button class="btn btn-sm btn-primary" onclick="abrirModalEditar(${u.id}, '${u.nome}', '${u.username}', '${u.email}')">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="desativarUsuario(${u.id})">Desativar</button>
+            <button class="btn btn-sm btn-primary" onclick="abrirModalEditar(${u.id}, '${u.nome}', '${u.username}', '${u.email}')"><i class="bi bi-pencil-square"></i> Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="desativarUsuario(${u.id})"><i class="bi bi-ban"></i> Desativar</button>
           </td>
         </tr>`;
       });
@@ -445,7 +445,7 @@
         lista.innerHTML += `<tr>
           <td>${u.nome}</td><td>${u.username}</td><td>${u.email}</td>
           <td>
-            <button class="btn btn-sm btn-success" onclick="reativarUsuario('${u.id}')">Reativar</button>
+            <button class="btn btn-sm btn-success" onclick="reativarUsuario('${u.id}')"><i class="bi bi-arrow-clockwise"></i> Reativar</button>
           </td>
         </tr>`;
       });
@@ -549,6 +549,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
 
