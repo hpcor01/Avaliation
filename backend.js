@@ -84,7 +84,7 @@ app.get('/usuarios', async (_req, res) => {
       .toArray();
 
     const users = docs.map(d => ({
-      id: d._id,
+      id: d._id.toString(),
       username: d.user.username,
       nome: d.user.nome,
       email: d.user.email
@@ -108,7 +108,7 @@ app.get('/usuarios/inativos', async (_req, res) => {
       .toArray();
 
     const users = docs.map(d => ({
-      id: d._id,
+      id: d._id.toString(),
       username: d.user.username,
       nome: d.user.nome,
       email: d.user.email
@@ -121,31 +121,25 @@ app.get('/usuarios/inativos', async (_req, res) => {
   }
 });
 
-// Criar usuário
+// Criar novo usuário
 app.post('/usuarios', async (req, res) => {
-  const { username, password, nome, email } = req.body || {};
-  if (!username || !password || !nome || !email) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-  }
   try {
-    const db = client.db(dbName);
-    const col = db.collection('colLogin');
-
-    const jaExiste = await col.findOne({ 'user.username': username });
-    if (jaExiste) {
-      return res.status(409).json({ error: 'Nome de usuário já existe.' });
+    const { nome, username, email, password } = req.body;
+    if (!nome || !username || !email || !password) {
+      return res.status(400).json({ error: 'Campos obrigatórios faltando.' });
     }
 
-    await col.insertOne({
-      user: { username, password, nome, email },
+    const db = client.db(dbName);
+    await db.collection('colLogin').insertOne({
+      user: { nome, username, email, password },
       ativo: true,
-      createdAt: new Date()
+      criadoEm: new Date()
     });
 
-    res.status(201).json({ ok: true });
+    res.json({ ok: true });
   } catch (err) {
-    console.error('Erro ao cadastrar usuário:', err);
-    res.status(500).json({ error: 'Erro ao cadastrar usuário.' });
+    console.error('Erro ao criar usuário:', err);
+    res.status(500).json({ error: 'Erro ao criar usuário.' });
   }
 });
 
