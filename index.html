@@ -1,85 +1,263 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Gerenciador de Slides</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Avaliação de Atendimento</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .options, .identify {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+    .button {
+      padding: 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      width: 250px;
+    }
+    .muito-bom { background-color: #4CAF50; color: white; }
+    .bom { background-color: #8BC34A; color: white; }
+    .regular { background-color: #FFC107; color: black; }
+    .ruim { background-color: #F44336; color: white; }
+    .yes { background-color: #98FB98; color: white; }
+    .no { background-color: #FA8072;  color: white; }
+    .input-name {
+      padding: 10px;
+      font-size: 18px;
+      width: 250px;
+      margin-bottom: 10px;
+    }
+    .identify-question {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .button-row {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tooltip-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      background-color: #333;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 10;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      transition: opacity 0.3s;
+    }
+    .tooltip-wrapper:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }    
+    #thanks {
+      display: none;
+      text-align: center;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    #enviandoMsg {
+      display: none;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #007bff;
+    }
+  </style>
 </head>
 <body>
-  <h1>📑 Gerenciador de Slides</h1>
+  <div class="options" id="options">
+    <h1>Avalie seu atendimento:</h1>
+    <button class="button muito-bom" onclick="selectRating('Muito bom')">😀 Muito bom</button>
+    <button class="button bom" onclick="selectRating('Bom')">🙂 Bom</button>
+    <button class="button regular" onclick="selectRating('Regular')">😐 Regular</button>
+    <button class="button ruim" onclick="selectRating('Ruim')">🙁 Ruim</button>
 
-  <!-- Formulário -->
-  <form id="formSlide">
-    <input type="text" id="assunto" placeholder="Assunto" required>
-    <textarea id="texto" placeholder="Texto do slide" required></textarea>
-    <button type="submit">Adicionar</button>
-  </form>
+    <div class="button-row">
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊</button>
+        <span class="tooltip">Repetir a pergunta</span>
+      </div>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#555;" onclick="speakText('Esta é a tela de avaliação. Escolha uma das opções.')">❓</button>
+        <span class="tooltip">Ajuda para avaliação</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- Lista de slides -->
-  <h2>Slides já cadastrados</h2>
-  <div id="listaSlides"></div>
+  <div class="identify" id="identify">
+    <p class="identify-question" id="identifyQuestion">Deseja se identificar?</p>
+    <button class="button yes" id="yesBtn" onclick="showNameInput(true)">✅Sim</button>
+    <button class="button no" id="noBtn" onclick="submitEvaluation()">❌Não</button>
+    <div id="voiceInputWrapper" style="display:none; flex-direction: column; align-items: center;">
+      <input class="input-name" id="nameInput" type="text" placeholder="Diga ou digite seu nome">
+      <button class="button" style="background-color:#191970; color:white;" onclick="startVoiceInput()" required>🎙️ Falar nome</button><br/>
+      <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()">✅ Enviar</button>
+    </div>
+    <button class="button yes" id="submitNameBtn" onclick="submitEvaluation()" style="display:none;">Enviar</button>
+
+    <div class="button-row">
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#444;" onclick="speakOptions()">🔊</button>
+        <span class="tooltip">Repetir a pergunta</span>
+      </div>
+      <div class="tooltip-wrapper">
+        <button class="button" style="background-color:#555;" onclick="speakText('Você pode digitar seu nome ou continuar anônimo.')">❓</button>
+        <span class="tooltip">Ajuda para identificação</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="thanks" id="thanks">
+    <h2>🙋🏻‍♂️ Obrigado!</h2>
+  </div>
+
+  <div id="enviandoMsg">Enviando avaliação...</div>
 
   <script>
-    const API_URL = "http://localhost:5000/slides"; // ajuste depois para o Render
+    function speakText(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pt-BR';
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
 
-    // Carregar slides
-    async function carregarSlides() {
-      try {
-        const res = await fetch(API_URL);
-        const slides = await res.json();
+    function speakOptions() {
+      speakText('Como você avalia nosso atendimento? Escolha uma das opções: Muito bom, Bom, Regular ou Ruim.');
+    }
 
-        const lista = document.getElementById("listaSlides");
-        lista.innerHTML = "";
+    function speakIdentify() {
+      speakText('Deseja se identificar? Pressione Sim ou Não.');
+    }
 
-        if (slides.length === 0) {
-          lista.innerHTML = "<p>Nenhum slide cadastrado ainda.</p>";
-          return;
-        }
+    function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Reconhecimento de voz não é suportado neste navegador.");
+      return;
+    }
 
-        slides.forEach(s => {
-          const div = document.createElement("div");
-          div.className = "slide";
-          div.innerHTML = `
-            <h3>${s.slide.assunto}</h3>
-            <p>${s.slide.texto}</p>
-            <div class="data">Data: ${s.slide.data || "—"}</div>
-            <div class="autor">Autor: ${s.slide.autor || "—"}</div>
-          `;
-          lista.appendChild(div);
-        });
-      } catch (err) {
-        console.error("Erro ao carregar slides:", err);
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+    
+      speakText("Pode falar seu nome agora.");
+      recognition.start();
+    
+      recognition.onresult = function(event) {
+        const name = event.results[0][0].transcript;
+        nameInput.value = name;
+      };
+    
+      recognition.onerror = function(event) {
+        alert('Erro ao reconhecer: ' + event.error);
+      };
+    }
+
+    const options = document.getElementById('options');
+    const identify = document.getElementById('identify');
+    const thanks = document.getElementById('thanks');
+    const nameInput = document.getElementById('nameInput');
+    const submitNameBtn = document.getElementById('submitNameBtn');
+    const identifyQuestion = document.getElementById('identifyQuestion');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    let selectedRating = '';
+
+    function selectRating(rating) {
+      selectedRating = rating;
+      options.style.display = 'none';
+      identify.style.display = 'flex';
+      speakIdentify();
+    }
+
+    function showNameInput(show) {
+      if (show) {
+        identifyQuestion.style.display = 'none';
+        yesBtn.style.display = 'none';
+        noBtn.style.display = 'none';
+        document.getElementById('voiceInputWrapper').style.display = 'flex';
+        speakText('Diga ou digite seu nome e pressione Enviar.');
       }
     }
 
-    // Adicionar slide
-    document.getElementById("formSlide").addEventListener("submit", async e => {
-      e.preventDefault();
+    function submitEvaluation() {
+      const name = nameInput.value || 'Anônimo';
+      const now = new Date().toISOString();
+      document.getElementById("enviandoMsg").style.display = "block";
 
-      const assunto = document.getElementById("assunto").value;
-      const texto = document.getElementById("texto").value;
+      fetch('https://avaliation.onrender.com/avaliar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: name, avaliacao: selectedRating, data: now })
+      })
+      .then(async (response) => {
+        document.getElementById("enviandoMsg").style.display = "none";
 
-      const novoSlide = {
-        assunto,
-        texto
-      };
+        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
-      try {
-        await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(novoSlide)
-        });
+        identify.style.display = 'none';
+        thanks.style.display = 'block';
+        speakText('Obrigado!');
+        setTimeout(() => {
+          thanks.style.display = 'none';
+          nameInput.value = '';
+          showNameInput(false);
+          identifyQuestion.style.display = 'block';
+          yesBtn.style.display = 'inline-block';
+          noBtn.style.display = 'inline-block';
+          options.style.display = 'flex';
+          speakOptions();
+        }, 3000);
+      })
+      .catch(err => {
+        document.getElementById("enviandoMsg").style.display = "none";
+        alert('Erro ao enviar avaliação.');
+        console.error(err);
+      });
+    }
 
-        document.getElementById("formSlide").reset();
-        carregarSlides();
-      } catch (err) {
-        console.error("Erro ao adicionar slide:", err);
-      }
-    });
-
-    // Carregar na inicialização
-    carregarSlides();
+    window.onload = () => {
+      options.style.display = 'flex';
+      speakOptions();
+    };
   </script>
 </body>
 </html>
